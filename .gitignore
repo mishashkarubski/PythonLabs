@@ -131,3 +131,4 @@ dmypy.json
 # IDE files and miscelanious
 .idea
 .fleet
+.DS_Store
