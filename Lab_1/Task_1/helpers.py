@@ -2,31 +2,40 @@ import os
 from constants import PUNCTUATION_MARKS, TERMINATION_MARKS
 
 
+def is_word(word: str) -> bool:
+    """
+    Single word validation function. Word consists of either letters
+    or letters and numbers. Word cannot consist only of numbers.
+    All letters in the word must be latin.
+    """
+    return word.isalnum() and not word.isdigit()
+
+
 def read_text(user_input: str | os.PathLike) -> str:
     """
-    This function is designed to get text either from file
-    of specified path, or from the user's direct input.
+    This function is designed to either read the text from a file
+    of specified path, or read it from user's direct input.
     """
     if not os.path.lexists(user_input):
-        return user_input
+        return str(user_input)
 
     with open(user_input, 'r') as file:
         return file.read()
 
 
-def trim(text: str) -> str:
+def remove_punctuation(text: str) -> str:
     """
-    Removes any punctuation from the text and return a string
+    Removes any punctuation from the text and returns a string
     consisting only of words.
     """
-    return "".join(list(filter(lambda c: c not in PUNCTUATION_MARKS + TERMINATION_MARKS, text)))
+    return "".join(list(filter(lambda x: x not in PUNCTUATION_MARKS + TERMINATION_MARKS, text)))
 
 
-def average_word_length(text: str) -> float:
+def average_word_length(text: str) -> int:
     """
     This function takes text as an input and returns
     the average word length in it.
     """
-    words = trim(text).split()
+    words = list(filter(is_word, remove_punctuation(text).split()))
 
-    return int(sum(len(word) for word in words) / len(words))
+    return int(sum((map(len, words))) / len(words))
