@@ -11,13 +11,13 @@ def is_word(word: str) -> bool:
     return word.isalnum() and not word.isdigit()
 
 
-def read_text(user_input: str | os.PathLike) -> str:
+def read_text(user_input: str) -> str:
     """
     This function is designed to either read the text from a file
     of specified path, or read it from user's direct input.
     """
     if not os.path.lexists(user_input):
-        return str(user_input)
+        return user_input
 
     with open(user_input, 'r') as file:
         return file.read()
