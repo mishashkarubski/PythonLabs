@@ -43,7 +43,7 @@ def average_word_length(text: str) -> int:
 
 
 def counter_factory(punct_marks: tuple[str]) -> object:
-    def _count_sentences(text) -> int:
+    def sentence_counter(text) -> int:
         """
         Counts the number of sentences in text with respect
         to the given punctuation marks.
@@ -56,8 +56,9 @@ def counter_factory(punct_marks: tuple[str]) -> object:
             for ind, char in zip(range(text_length), list(text))
         )
 
-    return _count_sentences
+    return sentence_counter
 
 
+# Sentence counters (all & non-declarative)
 count_sentences = counter_factory(TERM_MARKS)
 count_non_declarative = counter_factory(TERM_MARKS[1:])
