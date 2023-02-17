@@ -1,4 +1,4 @@
 # Punctuation marks placed at the end of sentences.
-TERMINATION_MARKS = ('.', '!', '?')
+TERM_MARKS = ('.', '!', '?')
 # Punctuation marks splitting sentences into clauses.
-PUNCTUATION_MARKS = (',', ';', '–')
+PUNCT_MARKS = (',', ';', '–')
