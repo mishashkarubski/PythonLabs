@@ -23,6 +23,10 @@ def main():
 
         return result
 
+    numbers = list(range(1, 25))
+
+    return list(filter(lambda x: x % 2 == 0, numbers))
+
 
 if __name__ == "__main__":
-    main()
+    print(f"List of even numbers from the original list: {main()}")
