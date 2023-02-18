@@ -1,7 +1,7 @@
-"""
-Helpers is a part of utils package.
-This is a module for text processing and analysis.
-It contains necessary text reading and parsing functions.
+""" A module for text processing and analysis.
+
+Contains necessary text reading and parsing functions,
+such as read_text or remove_punctuation
 """
 
 
@@ -10,9 +10,10 @@ from ..constants import PUNCT_MARKS, TERM_MARKS
 
 
 def read_text(user_input: str) -> str:
-    """
-    This function is designed to either read the text from a file
-    of specified path, or read it from user's direct input.
+    """Either read the text from a file of specified path,
+    or reads it from user's direct input.
+
+    :argument user_input any string input.
     """
     if not os.path.lexists(user_input):
         return user_input
@@ -22,8 +23,6 @@ def read_text(user_input: str) -> str:
 
 
 def remove_punctuation(text: str) -> str:
-    """
-    Removes any punctuation from the text and returns a string
-    consisting only of words.
-    """
+    """Removes any punctuation from the text and returns words only."""
+
     return "".join(filter(lambda x: x not in PUNCT_MARKS + TERM_MARKS, text))

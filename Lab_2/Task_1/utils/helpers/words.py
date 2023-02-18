@@ -1,23 +1,25 @@
-"""Part of helpers package. Functions for word processing."""
+"""Contains functions for word processing."""
 
 
 from ..helpers import remove_punctuation
 
 
 def is_word(word: str) -> bool:
-    """
-    Single word validation function. Word consists of either letters
-    or letters and numbers. Word cannot consist only of numbers.
-    All letters in the word must be latin.
+    """Checks if the given string is a word.
+
+    Word consists of either letters only or letters and numbers.
+    Word cannot consist only of numbers. All letters in the word must be latin.
+
+    :argument word any string
     """
     return word.isalnum() and not word.isdigit()
 
 
-def average_word_length(text: str) -> int:
+def average_word_length(text: str) -> float:
+    """Returns average word length (in characters) in the text
+    :argument text any string
     """
-    This function takes text as an input and returns
-    the average word length in it.
-    """
+
     words = list(filter(is_word, remove_punctuation(text).split()))
 
-    return int(sum((map(len, words))) / len(words))
+    return sum((map(len, words))) / len(words)
