@@ -23,7 +23,7 @@ def counter_factory(term_marks: tuple[str]) -> Callable:
 
     Sentences are marked by the given punctuation marks.
 
-    :param term_marks tuple of strings, for instance ('.', '!', '?').
+    :argument term_marks tuple of strings, for instance ('.', '!', '?').
     """
     def sentence_counter(text: str) -> int:
         """Counts the number of sentences in the given text.

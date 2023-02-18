@@ -6,12 +6,11 @@ from utils.helpers import words, sentences
 def main():
     """Carries out the subtasks of Task_1"""
 
-    user_input = str(input(
+    text = helpers.read_text(str(input(
         "Either enter the text manually " +
         "or specify the path to file with it: "
-    ))
-
-    text = helpers.read_text(user_input)
+    )))
+    n, k = 4, 10
 
     print("Average word length in text (in chars) is",
           f"{words.average_word_length(text)}")
@@ -21,6 +20,8 @@ def main():
           f"{sentences.count_non_declarative(text)}")
     print("Average sentence lenth in text (in chars) is",
           f"{sentences.average_sentence_length(text)}")
+    print(f"Top {k} repeated {n}-grams are",
+          f"{helpers.find_top_k_n_grams(text, n, k)}")
 
 
 if __name__ == '__main__':
