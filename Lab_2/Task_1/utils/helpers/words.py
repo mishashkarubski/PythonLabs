@@ -1,3 +1,6 @@
+"""Part of helpers package. Functions for word processing."""
+
+
 from ..helpers import remove_punctuation
 
 

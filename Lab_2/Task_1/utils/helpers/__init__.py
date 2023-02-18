@@ -1,9 +1,12 @@
+"""
+Helpers is a part of utils package.
+This is a module for text processing and analysis.
+It contains necessary text reading and parsing functions.
+"""
+
+
 import os
 from ..constants import PUNCT_MARKS, TERM_MARKS
-
-
-# Module name
-__name__ = "__helpers__"
 
 
 def read_text(user_input: str) -> str:
@@ -23,4 +26,4 @@ def remove_punctuation(text: str) -> str:
     Removes any punctuation from the text and returns a string
     consisting only of words.
     """
-    return "".join(list(filter(lambda x: x not in PUNCT_MARKS + TERM_MARKS, text.strip())))
+    return "".join(filter(lambda x: x not in PUNCT_MARKS + TERM_MARKS, text))
