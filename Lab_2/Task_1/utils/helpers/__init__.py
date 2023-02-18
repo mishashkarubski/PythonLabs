@@ -3,8 +3,6 @@
 Contains necessary text reading and parsing functions,
 such as read_text or remove_punctuation
 """
-
-
 import os
 from ..constants import PUNCT_MARKS, TERM_MARKS
 

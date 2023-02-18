@@ -1,27 +1,42 @@
 """Contains functions for sentence processing."""
 
+from typing import Callable
+from string import ascii_letters
+from . import remove_punctuation
+from .words import is_word
+from ..constants import TERM_MARKS, PRECISION
 
-from ..constants import TERM_MARKS
+
+def is_sentence(sentence: str) -> bool:
+    """Checks if the given string is a word.
+
+    Sentence must have at least one word.
+    :argument sentence any string
+    """
+    sentence = remove_punctuation(sentence)
+
+    return len(list(filter(is_word, sentence))) > 0
 
 
-def counter_factory(punct_marks: tuple[str]) -> object:
+def counter_factory(term_marks: tuple[str]) -> Callable:
     """ Returns a function which counts sentences.
 
     Sentences are marked by the given punctuation marks.
-    :argument punct_marks tuple of strings, for instance ('.', '!', '?').
+
+    :param term_marks tuple of strings, for instance ('.', '!', '?').
     """
     def sentence_counter(text: str) -> int:
         """Counts the number of sentences in the given text.
         :argument text any string.
         """
-        text_length = len(text)
-        text += " "
+        words = text.split()
+        inner_words = remove_punctuation(text).split()
+        ending_words = list(filter(
+            lambda w: w not in inner_words and w[0] in ascii_letters,
+            words
+        ))
 
-        return sum(
-            char in punct_marks
-            and (text[ind + 1] not in punct_marks or ind >= len(text) - 1)
-            for ind, char in zip(range(text_length), list(text))
-        )
+        return len(list(filter(lambda w: w[-1] in term_marks, ending_words)))
 
     return sentence_counter
 
@@ -31,7 +46,22 @@ count_non_declarative = counter_factory(TERM_MARKS[1:])
 
 
 def average_sentence_length(text: str) -> float:
-    """ Average sentence length in characters it (counting words only)
+    """ Average sentence length in text (counting words only).
     :argument text any string
     """
-    pass
+    sentences = list(filter(
+        is_sentence,
+        text.replace("!", ".").replace("?", ".").split(".")
+    ))  # Splitting text into sentences and removing non-sentence results
+
+    letters = "".join(
+        "".join(filter(is_word, remove_punctuation(sentence).split()))
+        for sentence in sentences
+    )  # Removing non-words in sentences and concatenating the words
+
+    try:
+        result = round(len(letters) / count_sentences(text), PRECISION)
+    except ZeroDivisionError:
+        result = 0
+
+    return result

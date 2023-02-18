@@ -1,6 +1,5 @@
 """Contains functions for word processing."""
-
-
+from ..constants import PRECISION
 from ..helpers import remove_punctuation
 
 
@@ -21,5 +20,10 @@ def average_word_length(text: str) -> float:
     """
 
     words = list(filter(is_word, remove_punctuation(text).split()))
+    letters = "".join(words)
+    try:
+        result = round(len(letters) / len(words), PRECISION)
+    except ZeroDivisionError:
+        result = 0
 
-    return sum((map(len, words))) / len(words)
+    return result
