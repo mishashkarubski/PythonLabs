@@ -12,16 +12,16 @@ def main():
     )))
     n, k = 4, 10
 
-    print("Average word length in text (in chars) is",
+    print("1. Average word length in text (in chars) is",
           f"{words.average_word_length(text)}")
-    print("Numbers of sentences in the text is",
+    print("2. Numbers of sentences in the text is",
           f"{sentences.count_sentences(text)}")
-    print("Numbers of non-declarative sentences in the text is",
+    print("3. Numbers of non-declarative sentences in the text is",
           f"{sentences.count_non_declarative(text)}")
-    print("Average sentence lenth in text (in chars) is",
+    print("4. Average sentence lenth in text (in chars) is",
           f"{sentences.average_sentence_length(text)}")
-    print(f"Top {k} repeated {n}-grams are",
-          f"{helpers.find_top_k_n_grams(text, n, k)}")
+    print(f"5. Top {k} repeated {n}-grams are",
+          f"{helpers.top_k_n_grams(text, n, k)}")
 
 
 if __name__ == '__main__':

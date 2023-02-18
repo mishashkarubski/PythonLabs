@@ -4,8 +4,6 @@ Contains necessary text reading and parsing functions,
 such as read_text or remove_punctuation
 """
 import os
-from typing import List, Tuple
-
 from ..constants import PUNCT_MARKS, TERM_MARKS
 
 
@@ -28,7 +26,7 @@ def remove_punctuation(text: str) -> str:
     return "".join(filter(lambda x: x not in PUNCT_MARKS + TERM_MARKS, text))
 
 
-def find_top_k_n_grams(text: str, n: int = 4, k: int = 10):
+def top_k_n_grams(text: str, n: int = 4, k: int = 10) -> list[str]:
     """Returns top-K repeated N-grams in the text"""
 
     words = tuple(remove_punctuation(text.lower()).split())
@@ -41,4 +39,4 @@ def find_top_k_n_grams(text: str, n: int = 4, k: int = 10):
         reverse=True
     ))
 
-    return unique_n_grams[:k]
+    return [" ".join(n_gram) for n_gram in unique_n_grams[:k]]
