@@ -1,11 +1,11 @@
-from typing import Literal, Optional
+from typing import Literal, Optional, Any
 
 
 # Type aliases for math function
 Operation = Literal["add", "sub", "mult", "div"]
 
 
-def mathfunc(x: float, y: float, func: Operation) -> Optional[float]:
+def calculate(x: float, y: float, func: Operation) -> Optional[float]:
     """Performs math operations on two numbers.
 
     Returns the result of the operation on two numbers, or None
@@ -23,8 +23,8 @@ def mathfunc(x: float, y: float, func: Operation) -> Optional[float]:
     return result
 
 
-def filter_even(numbers: list[int]):
+def filter_even(numbers: list[Any]):
     """Leaves only even values in the list
     :argument numbers list of integers
     """
-    return list(filter(lambda x: x % 2 == 0, numbers))
+    return list(filter(lambda x: str(x).isdigit() and int(x) % 2 == 0, numbers))
