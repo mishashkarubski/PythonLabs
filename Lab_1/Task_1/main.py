@@ -1,32 +1,22 @@
-from typing import Union, Literal, Optional
-
-
-# Type aliases for math function
-Operation = Literal["add", "sub", "mult", "div"]
-Number = Union[int, float, complex]
+"""Main module of Lab_1/Task_1"""
+import helpers
 
 
 def main():
-    """
-    Prints "Hello, World!".
-    Creates a function that returns the result of a mathematical operation.
-    Creates list of numbers and returns list of even numbers in this list.
-    """
+    """Carries out the subtasks of Task_1"""
+
     print("Hello, World!")
-
-    def mathfunc(x: Number, y: Number, func: Operation) -> Optional[Number]:
-        """Performs math operations on two numbers."""
-        try:
-            result = eval(f"x.__{func[:3] if func != 'div' else 'truediv'}__(y)")
-        except (AttributeError, TypeError):
-            result = None
-
-        return result
-
-    numbers = list(range(1, 25))
-
-    return list(filter(lambda x: x % 2 == 0, numbers))
+    print("1. Result of addition is",
+          f"{helpers.mathfunc(4, -11, 'add')}")
+    print("2. Result of multiplication",
+          f"is {helpers.mathfunc(4., -1.1, 'mult')}")
+    print("3. Result of substration is",
+          f"{helpers.mathfunc(4.2, -11, 'sub')}")
+    print("4. Result of division is",
+          f"{helpers.mathfunc(-4.2, 0, 'div')}")
+    print("5. Even numbers of list of integers from 0 to 50 are:",
+          f"{helpers.filter_even(list(range(51)))}")
 
 
 if __name__ == "__main__":
-    print(f"List of even numbers from the original list: {main()}")
+    main()
