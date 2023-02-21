@@ -4,7 +4,8 @@ from ..constants.messages import \
     CLI_MESSAGE, \
     INVALID_COMMAND_MESSAGE
 from ..constants.types import Command
-from typing import List, NoReturn, Tuple, Optional
+from typing import NoReturn, Tuple, Dict, Callable
+import inspect
 
 
 class Console:
@@ -28,25 +29,33 @@ class Console:
     def user(self, new_username: str) -> NoReturn:
         self.user = User(new_username)
 
+    @property
+    def commands(self) -> Dict[str, Callable]:
+        return self.__commands
+
     @staticmethod
     def parse_cmd() -> Tuple[str, Tuple[str]]:
         raw_input = input(CLI_MESSAGE).split(maxsplit=1)
 
         try:
             result = raw_input[0], (
-                '',
-                tuple(raw_input[-1].split())
+                '', tuple(raw_input[-1].split())
             )[len(raw_input) > 1]
         except IndexError:
             result = '', tuple('')
 
         return result
 
-    def run(self, comm: str, args: List[str] | str) -> NoReturn:
-        if comm in self.__commands:
-            self.__commands[comm](args) if args else self.__commands[comm]()
-        elif comm != '':
+    def run(self, comm: str, args: Tuple[str]) -> NoReturn:
+        if comm == '':
+            return
+
+        if comm not in self.commands:
             print(INVALID_COMMAND_MESSAGE)
+            return
+
+        func, sig = self.commands[comm], inspect.signature(self.commands[comm])
+        func(args) if args and sig.parameters else func()
 
     def start_session(self) -> NoReturn:
         print(WELCOME_MESSAGE)

@@ -8,6 +8,7 @@ class User:
     def __init__(self, username: Optional[str] = None):
         self.__username = username
         self.__container = Storage()
+        self.__container.load(username)
 
     @property
     def username(self) -> Optional[str]:
@@ -25,7 +26,7 @@ class User:
         self.container.add(keys)
 
     def remove_key(self, key: Tuple[str]) -> NoReturn:
-        self.container.remove(str(key))
+        self.container.remove(key[0])
 
     def list_data(self) -> NoReturn:
         print(self.container.list())
