@@ -132,6 +132,3 @@ dmypy.json
 .idea
 .fleet
 .DS_Store
-
-# Data files
-*.dmp
