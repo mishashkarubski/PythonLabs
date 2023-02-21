@@ -1,8 +1,10 @@
 from .user import User
 from ..constants.messages import \
-    WELCOME_MESSAGE, \
+    START_MESSAGE, \
     CLI_MESSAGE, \
-    INVALID_COMMAND_MESSAGE
+    INVALID_COMM_MESSAGE, \
+    INVALID_PARAM_MESSAGE, \
+    END_MESSAGE
 from ..constants.types import Command
 from typing import NoReturn, Tuple, Dict, Callable
 import inspect
@@ -14,11 +16,12 @@ class Console:
         self.__commands = {
             Command.add.value: self.__user.add_keys,
             Command.remove.value: self.__user.remove_key,
-            Command.find.value: self.__user.find_key,
-            Command.list.value: self.__user.list_data,
-            Command.grep.value: self.__user.grep_keys,
-            Command.save.value: self.__user.save_data,
-            Command.load.value: self.__user.load_data,
+            Command.find.value: self.user.find_key,
+            Command.list.value: self.user.list_data,
+            Command.grep.value: self.user.grep_keys,
+            Command.save.value: self.user.save_data,
+            Command.load.value: self.user.load_data,
+            Command.switch.value: self.user.switch
         }
 
     @property
@@ -38,28 +41,36 @@ class Console:
         raw_input = input(CLI_MESSAGE).split(maxsplit=1)
 
         try:
-            result = raw_input[0], (
-                '', tuple(raw_input[-1].split())
+            return raw_input[0], (
+                tuple(''),
+                tuple(raw_input[-1].split())
             )[len(raw_input) > 1]
         except IndexError:
-            result = '', tuple('')
-
-        return result
+            return '', tuple('')
 
     def run(self, comm: str, args: Tuple[str]) -> NoReturn:
         if comm == '':
             return
 
         if comm not in self.commands:
-            print(INVALID_COMMAND_MESSAGE)
+            print(INVALID_COMM_MESSAGE)
             return
 
-        func, sig = self.commands[comm], inspect.signature(self.commands[comm])
-        func(args) if args and sig.parameters else func()
+        func = self.commands[comm]
+        func_params = inspect.signature(func).parameters
+
+        if (func_params and not args) or (args and not func_params):
+            print(INVALID_PARAM_MESSAGE)
+            return
+
+        func(args) if args else func()
 
     def start_session(self) -> NoReturn:
-        print(WELCOME_MESSAGE)
+        print(START_MESSAGE)
 
         while True:
-            comm, args = self.parse_cmd()
-            self.run(comm, args)
+            try:
+                self.run(*self.parse_cmd())
+            except KeyboardInterrupt:
+                print(END_MESSAGE)
+                return

@@ -1,3 +1,5 @@
-WELCOME_MESSAGE = "Welcome to Aboba CLI! Use ^C to exit."
+START_MESSAGE = "Welcome to Aboba CLI! Use ^C to exit."
 CLI_MESSAGE = "~ "
-INVALID_COMMAND_MESSAGE = "Invalid command. Skipping."
+INVALID_COMM_MESSAGE = "Invalid command. Skipping."
+INVALID_PARAM_MESSAGE = "Invalid parameters. Skipping."
+END_MESSAGE = "\nBoodgye!"

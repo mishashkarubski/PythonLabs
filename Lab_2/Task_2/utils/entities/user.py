@@ -1,7 +1,7 @@
 import re
 
 from .storage import Storage
-from typing import Optional, NoReturn, Tuple
+from typing import Optional, NoReturn, Tuple, Pattern
 
 
 class User:
@@ -16,7 +16,7 @@ class User:
 
     @username.setter
     def username(self, new_username: str) -> NoReturn:
-        self.username = new_username
+        self.__username = new_username
 
     @property
     def container(self) -> Storage:
@@ -32,9 +32,10 @@ class User:
         print(self.container.list())
 
     def find_key(self, key: Tuple[str]) -> NoReturn:
-        print(self.container.find(str(key)))
+        print(self.container.find(key[0]))
 
-    def grep_keys(self, regex) -> NoReturn:
+    def grep_keys(self, regex: Tuple[str | Pattern | Pattern[bytes]]) -> NoReturn:
+        regex = regex[0]
         print(self.container.grep(regex))
 
     def save_data(self) -> NoReturn:
@@ -43,6 +44,6 @@ class User:
     def load_data(self) -> NoReturn:
         self.container.load(self.username)
 
-    def switch(self, new_username: str):
-        self.username = new_username
-        self.container.load(new_username)
+    def switch(self, new_username: Tuple[str]):
+        self.username = new_username[0]
+        self.__container.load(new_username[0], switch=True)

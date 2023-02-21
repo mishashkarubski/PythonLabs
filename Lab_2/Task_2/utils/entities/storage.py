@@ -11,7 +11,7 @@ save/load – saves/loads container to/from file;
 import os
 import re
 import pickle
-from typing import Set, List, NoReturn, Tuple
+from typing import Set, List, NoReturn, Tuple, Pattern
 
 
 class Storage:
@@ -42,7 +42,10 @@ class Storage:
         self.data.update(*keys)
 
     def remove(self, key: str) -> NoReturn:
-        self.data.remove(key)
+        try:
+            self.data.remove(key)
+        except KeyError:
+            print(f"No such key: {key}. Skipping.")
 
     def list(self) -> List:
         return list(self.data)
@@ -50,16 +53,17 @@ class Storage:
     def find(self, key: str) -> bool:
         return key in self.data
 
-    def grep(self, regex) -> List:
+    def grep(self, regex: str | Pattern | Pattern[bytes]) -> List:
         return list(filter(lambda k: re.match(regex, k), self.data))
 
-    def load(self, source: str) -> NoReturn:
+    def load(self, source: str, switch=False) -> NoReturn:
         path = self.pathify(f"{source}.dmp")
 
         if not self.__verify_path(path):
             return
         with open(path, 'rb') as load_file:
-            self.data |= pickle.load(load_file)
+            new_data = pickle.load(load_file)
+            self.data = (self.data | new_data) if not switch else new_data
 
     def save(self, destination: str) -> NoReturn:
         path = self.pathify(f"{destination}.dmp")
