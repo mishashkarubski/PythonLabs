@@ -11,6 +11,7 @@ save/load – saves/loads container to/from file;
 import os
 import re
 import pickle
+from typing import Set, List, NoReturn, Tuple
 
 
 class Storage:
@@ -22,37 +23,37 @@ class Storage:
         self.__data = set()
 
     @property
-    def data(self):
+    def data(self) -> Set[str]:
         return self.__data
 
     @data.setter
-    def data(self, new_data):
+    def data(self, new_data: Set[str]) -> NoReturn:
         self.__data = new_data
 
     @classmethod
-    def __verify_path(cls, path: str | os.PathLike):
+    def __verify_path(cls, path: str | os.PathLike | bytes) -> bool:
         return os.path.lexists(path)
 
     @classmethod
-    def pathify(cls, name):
+    def pathify(cls, name: str | os.PathLike) -> bytes:
         return os.path.join(cls.__SAVE_FOLDER, name)
 
-    def add(self, *keys):
+    def add(self, *keys: Tuple[str]) -> NoReturn:
         self.data.update(*keys)
 
-    def remove(self, key):
+    def remove(self, key: str) -> NoReturn:
         self.data.remove(key)
 
-    def list(self):
+    def list(self) -> List:
         return list(self.data)
 
-    def find(self, key):
+    def find(self, key: str) -> bool:
         return key in self.data
 
-    def grep(self, regex):
+    def grep(self, regex) -> List:
         return list(filter(lambda k: re.match(regex, k), self.data))
 
-    def load(self, source):
+    def load(self, source: str) -> NoReturn:
         path = self.pathify(f"{source}.dmp")
 
         if not self.__verify_path(path):
@@ -60,7 +61,7 @@ class Storage:
         with open(path, 'rb') as load_file:
             self.data |= pickle.load(load_file)
 
-    def save(self, destination):
+    def save(self, destination: str) -> NoReturn:
         path = self.pathify(f"{destination}.dmp")
 
         with open(path, 'wb+') as save_file:

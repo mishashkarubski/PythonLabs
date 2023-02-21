@@ -1,9 +1,10 @@
 from .user import User
 from ..constants.messages import \
-        WELCOME_MESSAGE, \
-        CLI_MESSAGE, \
-        INVALID_COMMAND_MESSAGE
+    WELCOME_MESSAGE, \
+    CLI_MESSAGE, \
+    INVALID_COMMAND_MESSAGE
 from ..constants.types import Command
+from typing import List, NoReturn, Tuple, Optional
 
 
 class Console:
@@ -20,33 +21,36 @@ class Console:
         }
 
     @property
-    def user(self):
+    def user(self) -> User:
         return self.__user
 
     @user.setter
-    def user(self, new_username):
+    def user(self, new_username: str) -> NoReturn:
         self.user = User(new_username)
 
-    @property
-    def commands(self):
-        return self.__commands
-
     @staticmethod
-    def parse_cmd():
-        raw_command = input(CLI_MESSAGE).split(maxsplit=1)
+    def parse_cmd() -> Tuple[str, Tuple[str]]:
+        raw_input = input(CLI_MESSAGE).split(maxsplit=1)
 
-        return raw_command[0], \
-            (raw_command[-1], tuple(raw_command[-1].split()))[' ' in raw_command[-1]] if len(raw_command) > 1 else ''
+        try:
+            result = raw_input[0], (
+                '',
+                tuple(raw_input[-1].split())
+            )[len(raw_input) > 1]
+        except IndexError:
+            result = '', tuple('')
 
-    def run(self, command, args):
-        if command not in self.commands:
+        return result
+
+    def run(self, comm: str, args: List[str] | str) -> NoReturn:
+        if comm in self.__commands:
+            self.__commands[comm](args) if args else self.__commands[comm]()
+        elif comm != '':
             print(INVALID_COMMAND_MESSAGE)
-        else:
-            self.commands[command](args) if args else self.commands[command]()
 
-    def start_session(self):
+    def start_session(self) -> NoReturn:
         print(WELCOME_MESSAGE)
-        
+
         while True:
-            command, args = self.parse_cmd()
-            self.run(command, args)
+            comm, args = self.parse_cmd()
+            self.run(comm, args)
