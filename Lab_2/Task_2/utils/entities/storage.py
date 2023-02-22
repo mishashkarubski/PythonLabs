@@ -108,8 +108,5 @@ class Storage:
         1. destination: name of the source file to save data to;"""
         path = self.pathify(f"{destination}.dmp")
 
-        if not self.__verify_path(path):
-            return
-
         with open(path, 'wb+') as save_file:
             pickle.dump(self.data, save_file)
