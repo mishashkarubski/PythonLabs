@@ -35,5 +35,5 @@ MESSAGES = {
     'END_MESSAGE': "\nBoodgye (Cool Bug's fact: one day you will answer for your actions)!",
     'SAVE_QUESTION': "\nWould you like to save your storage? [y/n]: ",
     'LOAD_QUESTION': "Would you like to load container for user {}? [y/n]: ",
-    'INVALID_QUESTION_RESPONSE': "Invalid response. Aborting...",
+    'INVALID_RESPONSE': "Invalid response. Aborting...",
 }

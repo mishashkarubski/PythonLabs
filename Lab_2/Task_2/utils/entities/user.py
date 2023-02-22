@@ -82,5 +82,5 @@ class User:
             )
             self.username = new_username[0]
         else:
-            print(MSG['INVALID_QUESTION_RESPONSE'])
+            print(MSG['INVALID_RESPONSE'])
             return

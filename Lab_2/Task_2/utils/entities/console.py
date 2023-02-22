@@ -7,9 +7,6 @@ from ..constants.types import Command
 from ..constants.messages import MESSAGES as MSG
 
 
-# TODO #1: Code cleanup & bug fixes
-# TODO #2: Refactoring
-
 class Console:
     """Console is a main class of the program.
 
@@ -20,12 +17,14 @@ class Console:
         print(MSG['START_MESSAGE'])
 
         self.__user = None
+        self.__stop_early = False
 
         while not self.__user:
             try:
                 self.__user = User(input("Username: "))
             except KeyboardInterrupt:
-                print()
+                self.__stop_early = True
+                self.__user = User('')
 
         self.__commands = {
             Command.add.value: self.__user.add_keys,
@@ -94,20 +93,26 @@ class Console:
 
     def start_session(self) -> NoReturn:
         """Starts CLI session and turns on interactive mode"""
+        if self.__stop_early:
+            print(MSG['END_MESSAGE'])
+            return
 
         while True:
             try:
                 self.run(*self.parse_cmd())
             except KeyboardInterrupt:
                 self.stop_session()
+                print(MSG['END_MESSAGE'])
                 return
 
     def stop_session(self):
-        ans = input(MSG['SAVE_QUESTION'])
+        try:
+            ans = input(MSG['SAVE_QUESTION'])
+        except KeyboardInterrupt:
+            return
 
-        if ans not in ['y', 'n']:
-            print(MSG['INVALID_COMM_MESSAGE'])
+        if not ans or ans not in ['y', 'n']:
+            print(MSG['INVALID_RESPONSE'])
             return
 
         self.run('save' if ans == 'y' else '', tuple(''))
-        print(MSG['END_MESSAGE'])
