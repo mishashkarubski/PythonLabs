@@ -7,6 +7,7 @@ find <key> [key, ...] – checks if the element is presented in the container;
 list – returns all elements of container;
 grep <regex> – check the value in the container by regular expression;
 save/load – saves/loads container to/from file;
+switch – switches to another user.
 """
 import os
 import re
@@ -50,8 +51,8 @@ class Storage:
     def list(self) -> List:
         return list(self.data)
 
-    def find(self, key: str) -> bool:
-        return key in self.data
+    def find(self, key: str) -> str:
+        return key if key in self.data else "No such elements"
 
     def grep(self, regex: str | Pattern | Pattern[bytes]) -> List:
         return list(filter(lambda k: re.match(regex, k), self.data))

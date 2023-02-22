@@ -16,11 +16,10 @@ INFO_MSG = "\n".join([f"{comm} {COMMAND_INFO[comm]}" for comm in COMMAND_INFO])
 START_MESSAGE = f'''Welcome to Aboba CLI! Use ^C to exit. List of available commands:
 
 {INFO_MSG}
-
 '''
 CLI_INPUT = "~ "
-INVALID_COMM_MESSAGE = "Invalid command. Skipping."
-INVALID_PARAM_MESSAGE = "Invalid parameters. Skipping."
-END_MESSAGE = "\nBoodgye!"
+INVALID_COMM_MESSAGE = "No such command: {}. Skipping..."
+INVALID_ARG_MESSAGE = "Invalid arguments: {}. Skipping..."
+END_MESSAGE = "\nBoodgye (Cool Bob's fact: one day you will answer for your actions)!"
 SAVE_QUESTION = "\nWould you like to save your storage? [y/n]: "
 LOAD_QUESTION = "Would you like to load container for user {}? [y/n]: "

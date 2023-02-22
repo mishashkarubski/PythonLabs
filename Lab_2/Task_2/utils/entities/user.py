@@ -28,7 +28,7 @@ class User:
         self.container.remove(key[0])
 
     def list_data(self) -> NoReturn:
-        print(self.container.list())
+        print(f"[{', '.join(self.container.list())}]")
 
     def find_key(self, key: Tuple[str]) -> NoReturn:
         print(self.container.find(key[0]))

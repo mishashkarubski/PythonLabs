@@ -3,7 +3,7 @@ from ..constants.messages import \
     START_MESSAGE, \
     CLI_INPUT, \
     INVALID_COMM_MESSAGE, \
-    INVALID_PARAM_MESSAGE, \
+    INVALID_ARG_MESSAGE, \
     END_MESSAGE, \
     SAVE_QUESTION
 from ..constants.types import Command
@@ -11,9 +11,9 @@ from typing import NoReturn, Tuple, Dict, Callable
 import inspect
 
 
-# TODO #1 *: Make output prettier
-# TODO #2 *: Code cleanup & bug fixes
-# TODO #3 *: Docstrings for modules and packages
+# TODO #1: Code cleanup & bug fixes
+# TODO #2: Docstrings for modules and packages
+# TODO #3: Refactoring
 
 class Console:
     def __init__(self):
@@ -59,14 +59,14 @@ class Console:
             return
 
         if comm not in self.commands:
-            print(INVALID_COMM_MESSAGE)
+            print(INVALID_COMM_MESSAGE.format(comm))
             return
 
         func = self.commands[comm]
         func_params = inspect.signature(func).parameters
 
         if (func_params and not args) or (args and not func_params):
-            print(INVALID_PARAM_MESSAGE)
+            print(INVALID_ARG_MESSAGE.format(", ".join(args)))
             return
 
         func(args) if args else func()
