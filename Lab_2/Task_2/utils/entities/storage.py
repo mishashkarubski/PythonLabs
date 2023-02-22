@@ -60,7 +60,10 @@ class Storage:
         path = self.pathify(f"{source}.dmp")
 
         if not self.__verify_path(path):
+            if switch:
+                self.data = set()
             return
+
         with open(path, 'rb') as load_file:
             new_data = pickle.load(load_file)
             self.data = (self.data | new_data) if not switch else new_data

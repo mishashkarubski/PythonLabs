@@ -4,11 +4,17 @@ from ..constants.messages import \
     CLI_MESSAGE, \
     INVALID_COMM_MESSAGE, \
     INVALID_PARAM_MESSAGE, \
-    END_MESSAGE
+    END_MESSAGE, \
+    SAVE_QUESTION
 from ..constants.types import Command
 from typing import NoReturn, Tuple, Dict, Callable
 import inspect
 
+
+# TODO #1 *: Add more information in START_MESSAGE
+# TODO #2 *: Make output prettier
+# TODO #3 *: Code cleanup
+# TODO #4 *: Docstrings for modules and packages
 
 class Console:
     def __init__(self):
@@ -72,5 +78,8 @@ class Console:
             try:
                 self.run(*self.parse_cmd())
             except KeyboardInterrupt:
-                print(END_MESSAGE)
-                return
+                ans = input(SAVE_QUESTION)
+                if ans in ['y', 'n']:
+                    self.run('save' if ans == 'y' else '', tuple(''))
+                    print(END_MESSAGE)
+                    return

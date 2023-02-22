@@ -1,7 +1,6 @@
-import re
-
 from .storage import Storage
 from typing import Optional, NoReturn, Tuple, Pattern
+from ..constants.messages import LOAD_QUESTION
 
 
 class User:
@@ -46,4 +45,11 @@ class User:
 
     def switch(self, new_username: Tuple[str]):
         self.username = new_username[0]
-        self.__container.load(new_username[0], switch=True)
+        ans = input(LOAD_QUESTION.format(self.username))
+        
+        if ans in ['y', 'n']:
+            self.__container.load(
+                new_username[0] if ans == 'y' else '',
+                switch=(ans == 'y')
+            )
+
