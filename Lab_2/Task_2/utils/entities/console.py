@@ -1,3 +1,4 @@
+"""Program's CLI class for manipulatig storages & its methods."""
 from .user import User
 from ..constants.messages import \
     START_MESSAGE, \
@@ -12,10 +13,13 @@ import inspect
 
 
 # TODO #1: Code cleanup & bug fixes
-# TODO #2: Docstrings for modules and packages
-# TODO #3: Refactoring
+# TODO #2: Refactoring
 
 class Console:
+    """Console is a main class of the program.
+
+    It can create, delete, and manipulate users and storages.
+    """
     def __init__(self):
         print(START_MESSAGE)
         self.__user = User(input("Username: "))
@@ -32,18 +36,25 @@ class Console:
 
     @property
     def user(self) -> User:
+        """Getter of attribute __user"""
         return self.__user
 
     @user.setter
     def user(self, new_username: str) -> NoReturn:
+        """Setter of attribute __user"""
         self.user = User(new_username)
 
     @property
     def commands(self) -> Dict[str, Callable]:
+        """Getter of attribute __commands"""
         return self.__commands
 
     @staticmethod
     def parse_cmd() -> Tuple[str, Tuple[str]]:
+        """Parses command line input and returns tuple
+
+        containing command and its arguments.
+        """
         raw_input = input(CLI_INPUT).split(maxsplit=1)
 
         try:
@@ -55,6 +66,12 @@ class Console:
             return '', tuple('')
 
     def run(self, comm: str, args: Tuple[str]) -> NoReturn:
+        """Runs the given command with the given arguments.
+
+        If something wrong, displays error message. Args:
+        1. comm: string
+        2. args: tuple of strings
+        """
         if comm == '':
             return
 
@@ -72,6 +89,8 @@ class Console:
         func(args) if args else func()
 
     def start_session(self) -> NoReturn:
+        """Starts CLI session and turns on interactive mode"""
+
         while True:
             try:
                 self.run(*self.parse_cmd())

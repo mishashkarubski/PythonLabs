@@ -1,3 +1,4 @@
+"""Types for Task_2"""
 import enum
 
 

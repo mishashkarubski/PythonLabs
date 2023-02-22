@@ -1,3 +1,14 @@
+"""This module stores messages for interaction with CLI.
+
+INFO_MSG displays info about CLI commands.
+START_MESSAGE displays greeting.
+CLI_INPUT marks where CLI waits for user's input.
+INVALID_COMM_MESSAGE is displayed if entered command is invalid.
+INVALID_ARG_MESSAGE is displayed if arguments do not correspond with command.
+END_MESSAGE displays farewell.
+SAVE_QUESTION asks whether user wants to save their container before leaving.
+LOAD_QUESTION asks if user wants to load their container.
+"""
 from .types import Command
 
 
@@ -23,3 +34,4 @@ INVALID_ARG_MESSAGE = "Invalid arguments: {}. Skipping..."
 END_MESSAGE = "\nBoodgye (Cool Bob's fact: one day you will answer for your actions)!"
 SAVE_QUESTION = "\nWould you like to save your storage? [y/n]: "
 LOAD_QUESTION = "Would you like to load container for user {}? [y/n]: "
+INVALID_QUESTION_RESPONSE = "Invalid response. Aborting..."
