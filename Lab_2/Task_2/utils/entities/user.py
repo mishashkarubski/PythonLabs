@@ -1,12 +1,13 @@
 from .storage import Storage
 from typing import Optional, NoReturn, Tuple, Pattern
-from ..constants.messages import LOAD_QUESTION, INVALID_QUESTION_RESPONSE
+from ..constants.messages import MESSAGES as MSG
 
 
 class User:
     """Represents CLI user. Can operate the attached container, thus
 
     has access to its every method. Besides, can switch to other users."""
+
     def __init__(self, username: Optional[str] = None):
         self.__username = username
         self.__container = Storage()
@@ -72,8 +73,8 @@ class User:
         While switching, can load other user's container if needed.
         Arguments:
         1. new_username: tuple of single string"""
-        ans = input(LOAD_QUESTION.format(new_username[0]))
-        
+        ans = input(MSG['LOAD_QUESTION'].format(new_username[0]))
+
         if ans in ['y', 'n']:
             self.__container.load(
                 new_username[0] if ans == 'y' else '',
@@ -81,5 +82,5 @@ class User:
             )
             self.username = new_username[0]
         else:
-            print(INVALID_QUESTION_RESPONSE)
+            print(MSG['INVALID_QUESTION_RESPONSE'])
             return

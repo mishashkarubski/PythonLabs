@@ -21,7 +21,7 @@ class Storage:
     save/load – saves/loads container to/from file;
     switch – switches to another user.
     """
-    __SAVE_FOLDER = os.path.abspath("Task_2/data")
+    __SAVE_FOLDER = os.path.abspath("Lab_2/Task_2/data")
 
     def __init__(self):
         self.__data = set()
@@ -94,7 +94,11 @@ class Storage:
             return
 
         with open(path, 'rb') as load_file:
-            new_data = pickle.load(load_file)
+            try:
+                new_data = pickle.load(load_file)
+            except pickle.UnpicklingError:
+                new_data = set()
+
             self.data = (self.data | new_data) if not switch else new_data
 
     def save(self, destination: str) -> NoReturn:
@@ -103,6 +107,9 @@ class Storage:
         Arguments:
         1. destination: name of the source file to save data to;"""
         path = self.pathify(f"{destination}.dmp")
+
+        if not self.__verify_path(path):
+            return
 
         with open(path, 'wb+') as save_file:
             pickle.dump(self.data, save_file)
