@@ -1,7 +1,7 @@
 from .user import User
 from ..constants.messages import \
     START_MESSAGE, \
-    CLI_MESSAGE, \
+    CLI_INPUT, \
     INVALID_COMM_MESSAGE, \
     INVALID_PARAM_MESSAGE, \
     END_MESSAGE, \
@@ -11,13 +11,13 @@ from typing import NoReturn, Tuple, Dict, Callable
 import inspect
 
 
-# TODO #1 *: Add more information in START_MESSAGE
-# TODO #2 *: Make output prettier
-# TODO #3 *: Code cleanup
-# TODO #4 *: Docstrings for modules and packages
+# TODO #1 *: Make output prettier
+# TODO #2 *: Code cleanup & bug fixes
+# TODO #3 *: Docstrings for modules and packages
 
 class Console:
     def __init__(self):
+        print(START_MESSAGE)
         self.__user = User(input("Username: "))
         self.__commands = {
             Command.add.value: self.__user.add_keys,
@@ -44,7 +44,7 @@ class Console:
 
     @staticmethod
     def parse_cmd() -> Tuple[str, Tuple[str]]:
-        raw_input = input(CLI_MESSAGE).split(maxsplit=1)
+        raw_input = input(CLI_INPUT).split(maxsplit=1)
 
         try:
             return raw_input[0], (
@@ -72,8 +72,6 @@ class Console:
         func(args) if args else func()
 
     def start_session(self) -> NoReturn:
-        print(START_MESSAGE)
-
         while True:
             try:
                 self.run(*self.parse_cmd())
