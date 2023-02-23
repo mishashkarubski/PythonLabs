@@ -21,7 +21,7 @@ class Storage:
     save/load – saves/loads container to/from file;
     switch – switches to another user.
     """
-    __SAVE_FOLDER = os.path.abspath("Lab_2/Task_2/data")
+    __SAVE_FOLDER = os.path.relpath("Lab_2/Task_2/data")
 
     def __init__(self):
         self.__data = set()

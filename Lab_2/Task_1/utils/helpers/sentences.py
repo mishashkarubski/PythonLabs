@@ -36,6 +36,10 @@ def counter_factory(term_marks: tuple[str]) -> Callable:
             words
         ))
 
+        print(words)
+        print(inner_words)
+        print(ending_words)
+
         return len(list(filter(
             lambda w: w[-1] in term_marks and is_sentence(w),
             ending_words

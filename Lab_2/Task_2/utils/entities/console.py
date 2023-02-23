@@ -1,5 +1,6 @@
 """Program's CLI class for manipulatig storages & its methods."""
 import inspect
+import string
 from typing import NoReturn, Tuple, Dict, Callable
 
 from .user import User
@@ -19,7 +20,7 @@ class Console:
         self.__user = None
         self.__stop_early = False
 
-        while not self.__user:
+        while not self.__user or (self.__user.username in string.punctuation):
             try:
                 self.__user = User(input("Username: "))
             except KeyboardInterrupt:
