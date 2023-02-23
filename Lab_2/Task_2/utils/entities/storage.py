@@ -6,7 +6,7 @@ using pickle as a serialization tool.
 import os
 import re
 import pickle
-from typing import Set, List, NoReturn, Tuple, Pattern
+from typing import Set, List, NoReturn, Tuple, Pattern, Optional
 
 
 class Storage:
@@ -73,12 +73,15 @@ class Storage:
         1. key: any string"""
         return key if key in self.data else "No such elements."
 
-    def grep(self, regex: str | Pattern | Pattern[bytes]) -> List:
+    def grep(self, regex: str | Pattern | Pattern[bytes]) -> List[Optional[str]]:
         """Uses regular expressions to find elements in self.data
 
         Arguments:
         1. regex: regex-like object to filter data"""
-        return list(filter(lambda k: re.match(regex, k), self.data))
+        try:
+            return list(filter(lambda k: re.match(regex, k), self.data))
+        except re.error:
+            return []
 
     def load(self, source: str, switch=False) -> NoReturn:
         """Loads data into self.data from container with the given path.

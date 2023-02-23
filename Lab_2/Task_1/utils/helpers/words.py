@@ -1,5 +1,5 @@
 """Contains functions for word processing."""
-from ..constants import PRECISION
+from ..constants import PRECISION, SPECIAL_CHARS
 from ..helpers import remove_punctuation
 
 
@@ -11,7 +11,7 @@ def is_word(word: str) -> bool:
 
     :argument word any string
     """
-    return word.isalnum() and not word.isdigit()
+    return (not set(word) & SPECIAL_CHARS) and not word.isdigit()
 
 
 def average_word_length(text: str) -> float:
@@ -21,9 +21,8 @@ def average_word_length(text: str) -> float:
 
     words = list(filter(is_word, remove_punctuation(text).split()))
     letters = "".join(words)
-    try:
-        result = round(len(letters) / len(words), PRECISION)
-    except ZeroDivisionError:
-        result = 0
 
-    return result
+    try:
+        return round(len(letters) / len(words), PRECISION)
+    except ZeroDivisionError:
+        return 0

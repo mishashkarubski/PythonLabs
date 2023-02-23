@@ -36,7 +36,10 @@ def counter_factory(term_marks: tuple[str]) -> Callable:
             words
         ))
 
-        return len(list(filter(lambda w: w[-1] in term_marks, ending_words)))
+        return len(list(filter(
+            lambda w: w[-1] in term_marks and is_sentence(w),
+            ending_words
+        )))
 
     return sentence_counter
 
@@ -60,8 +63,6 @@ def average_sentence_length(text: str) -> float:
     )  # Removing non-words in sentences and concatenating the words
 
     try:
-        result = round(len(letters) / count_sentences(text), PRECISION)
+        return round(len(letters) / len(sentences), PRECISION)
     except ZeroDivisionError:
-        result = 0
-
-    return result
+        return 0
