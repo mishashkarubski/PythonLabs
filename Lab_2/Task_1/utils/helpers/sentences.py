@@ -3,44 +3,37 @@ import re
 
 from . import process_text
 from .words import get_words
-from ..constants import TERM_MARKS
+from ..constants import TERM_MARKS, PRECISION
 
 
 def is_sentence(sentence: str) -> bool:
     """Verifies if the given piece of text is a sentence."""
-    return bool(re.search("[A-z]", sentence)) and sentence[-1] in TERM_MARKS
+    return bool(re.search(r"[A-z]", sentence))
 
 
-def count_sentences(text: str) -> int:
-    """Counts the number of sentences in the given text."""
-    # print(re.findall(f"[^{TERM_MARKS}]+[{TERM_MARKS}]", text))
-    # print(list(filter(is_sentence, re.findall(f"[^{TERM_MARKS}]+[{TERM_MARKS}]", text))))
-    text = process_text(text)
+def get_sentences(text: str, term_marks: str = TERM_MARKS) -> list[str]:
+    """Returns list of sentences from the text."""
 
-    return len(list(filter(
+    return list(filter(
         is_sentence,
-        re.findall(f"[^{TERM_MARKS}]+[{TERM_MARKS}]", text)
-    )))
+        re.findall(rf"[^{term_marks}]+[{term_marks}]", process_text(text))
+    ))
 
 
-def count_non_declarative(text: str) -> int:
+def count_sentences(text: str, term_marks: str = TERM_MARKS) -> int:
     """Counts the number of sentences in the given text."""
-
-    text = process_text(text)
-
-    return len(list(filter(
-        is_sentence, re.findall(f"[^{TERM_MARKS[1:]}]+[{TERM_MARKS[1:]}]", text)
-    )))
+    return len(get_sentences(process_text(text), term_marks))
 
 
 def average_sentence_length(text: str) -> float:
     """Average sentence length in text in characters (counting words only)."""
 
-    text = process_text(text)
-    sentences = list(map(get_words, re.findall(f"[^{TERM_MARKS}]+", text)))
-    sentence_chars = ["".join(sent_words) for sent_words in sentences]
+    sentence_lens = map(
+        lambda words: len("".join(words)),
+        map(get_words, get_sentences(text))
+    )
 
     try:
-        return sum(map(len, sentence_chars)) / count_sentences(text)
+        return round(sum(sentence_lens) / count_sentences(text), PRECISION)
     except ZeroDivisionError:
         return 0
