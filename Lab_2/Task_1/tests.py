@@ -2,7 +2,7 @@
 import unittest
 
 from utils.helpers.words import average_word_length
-from utils.helpers.sentences import (count_sentences, average_sentence_length)
+from utils.helpers.sentences import count_sentences, average_sentence_length
 from utils.constants import TERM_MARKS
 
 

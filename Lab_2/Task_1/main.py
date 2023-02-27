@@ -1,7 +1,7 @@
 """Main module of Lab_2/Task_1"""
 from utils.helpers import read_text
-from utils.helpers.words import (average_word_length, top_k_n_grams)
-from utils.helpers.sentences import (count_sentences, average_sentence_length)
+from utils.helpers.words import average_word_length, top_k_n_grams
+from utils.helpers.sentences import count_sentences, average_sentence_length
 from utils.constants import TERM_MARKS
 
 
