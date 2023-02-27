@@ -21,7 +21,7 @@ def main():
     print("4. Average sentence length in text (in chars) is",
           f"{sentences.average_sentence_length(text)}")
     print(f"5. Top {k} repeated {n}-grams are",
-          f"{helpers.top_k_n_grams(text, n, k)}")
+          f"{words.top_k_n_grams(text, n, k)}")
 
 
 if __name__ == '__main__':
