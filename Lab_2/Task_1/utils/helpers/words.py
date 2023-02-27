@@ -1,28 +1,21 @@
 """Contains functions for word processing."""
-from ..constants import PRECISION, SPECIAL_CHARS
-from ..helpers import remove_punctuation
+from . import process_text
+from ..constants import PRECISION
+import re
 
 
-def is_word(word: str) -> bool:
-    """Checks if the given string is a word.
-
-    Word consists of either letters only or letters and numbers.
-    Word cannot consist only of numbers. All letters in the word must be latin.
-
-    :argument word any string
-    """
-    return (not set(word) & SPECIAL_CHARS) and not word.isdigit()
+def get_words(text: str) -> list[str]:
+    """Extracts words out of text."""
+    text = process_text(text)
+    return list(filter(lambda x: not x.isdigit(), re.findall(r"\w+", text)))
 
 
 def average_word_length(text: str) -> float:
-    """Returns average word length (in characters) in the text
-    :argument text any string
-    """
+    """Returns average word length (in characters) in the text"""
 
-    words = list(filter(is_word, remove_punctuation(text).split()))
-    letters = "".join(words)
+    words = get_words(process_text(text))
 
     try:
-        return round(len(letters) / len(words), PRECISION)
+        return round(len("".join(words)) / len(words), PRECISION)
     except ZeroDivisionError:
         return 0

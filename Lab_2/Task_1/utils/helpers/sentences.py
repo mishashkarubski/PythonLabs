@@ -1,72 +1,46 @@
 """Contains functions for sentence processing."""
+import re
 
-from typing import Callable
-from string import ascii_letters
-from . import remove_punctuation
-from .words import is_word
-from ..constants import TERM_MARKS, PRECISION
+from . import process_text
+from .words import get_words
+from ..constants import TERM_MARKS
 
 
 def is_sentence(sentence: str) -> bool:
-    """Checks if the given string is a word.
-
-    Sentence must have at least one word.
-    :argument sentence any string
-    """
-    sentence = remove_punctuation(sentence)
-
-    return len(list(filter(is_word, sentence))) > 0
+    """Verifies if the given piece of text is a sentence."""
+    return bool(re.search("[A-z]", sentence)) and sentence[-1] in TERM_MARKS
 
 
-def counter_factory(term_marks: tuple[str]) -> Callable:
-    """ Returns a function which counts sentences.
+def count_sentences(text: str) -> int:
+    """Counts the number of sentences in the given text."""
+    # print(re.findall(f"[^{TERM_MARKS}]+[{TERM_MARKS}]", text))
+    # print(list(filter(is_sentence, re.findall(f"[^{TERM_MARKS}]+[{TERM_MARKS}]", text))))
+    text = process_text(text)
 
-    Sentences are marked by the given punctuation marks.
-
-    :argument term_marks tuple of strings, for instance ('.', '!', '?').
-    """
-    def sentence_counter(text: str) -> int:
-        """Counts the number of sentences in the given text.
-        :argument text any string.
-        """
-        words = text.split()
-        inner_words = remove_punctuation(text).split()
-        ending_words = list(filter(
-            lambda w: w not in inner_words and w[0] in ascii_letters,
-            words
-        ))
-
-        print(words)
-        print(inner_words)
-        print(ending_words)
-
-        return len(list(filter(
-            lambda w: w[-1] in term_marks and is_sentence(w),
-            ending_words
-        )))
-
-    return sentence_counter
+    return len(list(filter(
+        is_sentence,
+        re.findall(f"[^{TERM_MARKS}]+[{TERM_MARKS}]", text)
+    )))
 
 
-count_sentences = counter_factory(TERM_MARKS)
-count_non_declarative = counter_factory(TERM_MARKS[1:])
+def count_non_declarative(text: str) -> int:
+    """Counts the number of sentences in the given text."""
+
+    text = process_text(text)
+
+    return len(list(filter(
+        is_sentence, re.findall(f"[^{TERM_MARKS[1:]}]+[{TERM_MARKS[1:]}]", text)
+    )))
 
 
 def average_sentence_length(text: str) -> float:
-    """ Average sentence length in text (counting words only).
-    :argument text any string
-    """
-    sentences = list(filter(
-        is_sentence,
-        text.replace("!", ".").replace("?", ".").split(".")
-    ))  # Splitting text into sentences and removing non-sentence results
+    """Average sentence length in text in characters (counting words only)."""
 
-    letters = "".join(
-        "".join(filter(is_word, remove_punctuation(sentence).split()))
-        for sentence in sentences
-    )  # Removing non-words in sentences and concatenating the words
+    text = process_text(text)
+    sentences = list(map(get_words, re.findall(f"[^{TERM_MARKS}]+", text)))
+    sentence_chars = ["".join(sent_words) for sent_words in sentences]
 
     try:
-        return round(len(letters) / len(sentences), PRECISION)
+        return sum(map(len, sentence_chars)) / count_sentences(text)
     except ZeroDivisionError:
         return 0
