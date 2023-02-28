@@ -9,6 +9,7 @@ def main() -> NoReturn:
     cli: Console = Console()
     cli.start_session()
 
+    
 if __name__ == '__main__':
     main()
     
