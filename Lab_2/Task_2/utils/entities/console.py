@@ -1,11 +1,26 @@
-"""Program's CLI class for manipulatig storages & its methods."""
+"""Program's CLI class for manipulating storages."""
 import inspect
 import string
-from typing import NoReturn, Tuple, Dict, Callable
+import random
+from typing import (
+    NoReturn,
+    Tuple,
+    Dict,
+    Callable
+)
 
 from .user import User
 from ..constants.types import Command
-from ..constants.messages import MESSAGES as MSG
+from ..constants.messages import (
+    START_MESSAGE,
+    CLI_INPUT,
+    INVALID_COMM_MESSAGE,
+    INVALID_ARG_MESSAGE,
+    END_MESSAGE,
+    USERNAME_REQUEST,
+    SAVE_QUESTION,
+    INVALID_RESPONSE
+)
 
 
 class Console:
@@ -15,27 +30,27 @@ class Console:
     """
 
     def __init__(self):
-        print(MSG['START_MESSAGE'])
+        print(START_MESSAGE)
 
         self.__user = None
         self.__stop_early = False
 
-        while not self.__user or (self.__user.username in string.punctuation):
+        while not self.__user or self.__user.verify_username(self.__user.username):
             try:
-                self.__user = User(input("Username: "))
+                self.__user = User(input(USERNAME_REQUEST))
             except KeyboardInterrupt:
                 self.__stop_early = True
-                self.__user = User('')
+                self.__user = User(random.choices(population=string.ascii_letters, k=10))
 
         self.__commands = {
             Command.add.value: self.__user.add_keys,
             Command.remove.value: self.__user.remove_key,
-            Command.find.value: self.user.find_key,
-            Command.list.value: self.user.list_data,
-            Command.grep.value: self.user.grep_keys,
-            Command.save.value: self.user.save_data,
-            Command.load.value: self.user.load_data,
-            Command.switch.value: self.user.switch
+            Command.find.value: self.__user.find_key,
+            Command.list.value: self.__user.list_data,
+            Command.grep.value: self.__user.grep_keys,
+            Command.save.value: self.__user.save_data,
+            Command.load.value: self.__user.load_data,
+            Command.switch.value: self.__user.switch
         }
 
     @property
@@ -59,7 +74,7 @@ class Console:
 
         containing command and its arguments.
         """
-        raw_input = input(MSG['CLI_INPUT']).split(maxsplit=1)
+        raw_input = input(CLI_INPUT).split(maxsplit=1)
 
         try:
             return raw_input[0], (
@@ -80,22 +95,23 @@ class Console:
             return
 
         if comm not in self.commands:
-            print(MSG['INVALID_COMM_MESSAGE'].format(comm))
+            print(INVALID_COMM_MESSAGE.format(comm))
             return
 
         func = self.commands[comm]
         func_params = inspect.signature(func).parameters
 
         if (func_params and not args) or (args and not func_params):
-            print(MSG['INVALID_ARG_MESSAGE'].format(", ".join(args)))
+            print(INVALID_ARG_MESSAGE.format(", ".join(args)))
             return
 
         func(args) if args else func()
 
     def start_session(self) -> NoReturn:
         """Starts CLI session and turns on interactive mode"""
+
         if self.__stop_early:
-            print(MSG['END_MESSAGE'])
+            print(END_MESSAGE)
             return
 
         while True:
@@ -103,17 +119,19 @@ class Console:
                 self.run(*self.parse_cmd())
             except KeyboardInterrupt:
                 self.stop_session()
-                print(MSG['END_MESSAGE'])
                 return
 
     def stop_session(self):
+        """A wire..."""
+
         try:
-            ans = input(MSG['SAVE_QUESTION'])
+            ans = input(SAVE_QUESTION)
         except KeyboardInterrupt:
             return
 
         if not ans or ans not in ['y', 'n']:
-            print(MSG['INVALID_RESPONSE'])
+            print(INVALID_RESPONSE)
             return
 
         self.run('save' if ans == 'y' else '', tuple(''))
+        print(END_MESSAGE)

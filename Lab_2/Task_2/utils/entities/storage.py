@@ -13,7 +13,7 @@ class Storage:
     """Set-based containter for storing unique elements
 
     Supports following operations:
-    add <key> [key, ...] – adds one or more elements to container;
+    add <key> [key, ...] – adds one or more elements to container;
     remove <key> – delete key from container;
     find <key> [key, ...] – checks if the element is presented in the container;
     list – returns all elements of container;
@@ -42,7 +42,7 @@ class Storage:
         return os.path.lexists(path)
 
     @classmethod
-    def pathify(cls, name: str | os.PathLike) -> bytes:
+    def pathify(cls, name: str | os.PathLike) -> str:
         """Creates a path by concatenating __SAVE_FOLDER with the given name"""
         return os.path.join(cls.__SAVE_FOLDER, name)
 

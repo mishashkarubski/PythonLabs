@@ -1,6 +1,13 @@
+from string import punctuation
+from typing import (
+    Optional,
+    NoReturn,
+    Tuple,
+    Pattern
+)
+
 from .storage import Storage
-from typing import Optional, NoReturn, Tuple, Pattern
-from ..constants.messages import MESSAGES as MSG
+from ..constants.messages import LOAD_QUESTION, INVALID_RESPONSE
 
 
 class User:
@@ -9,24 +16,28 @@ class User:
     has access to its every method. Besides, can switch to other users."""
 
     def __init__(self, username: Optional[str] = None):
-        self.__username = username
-        self.__container = Storage()
-        self.__container.load(username)
+        self._username = username
+        self._container = Storage()
+        self._container.load(username)
+
+    @classmethod
+    def verify_username(cls, username: str) -> bool:
+        return bool(sum(char in username for char in punctuation))
 
     @property
     def username(self) -> Optional[str]:
         """Getter of attribute __username"""
-        return self.__username
+        return self._username
 
     @username.setter
     def username(self, new_username: str) -> NoReturn:
         """Setter of attribute __username"""
-        self.__username = new_username
+        self._username = new_username
 
     @property
     def container(self) -> Storage:
         """Getter of attribute __container"""
-        return self.__container
+        return self._container
 
     def add_keys(self, keys: Tuple[str]) -> NoReturn:
         """Adds keys to self.container
@@ -73,14 +84,14 @@ class User:
         While switching, can load other user's container if needed.
         Arguments:
         1. new_username: tuple of single string"""
-        ans = input(MSG['LOAD_QUESTION'].format(new_username[0]))
+        ans = input(LOAD_QUESTION.format(new_username[0]))
 
         if ans in ['y', 'n']:
-            self.__container.load(
+            self._container.load(
                 new_username[0] if ans == 'y' else '',
                 switch=(ans == 'y')
             )
             self.username = new_username[0]
         else:
-            print(MSG['INVALID_RESPONSE'])
+            print(INVALID_RESPONSE)
             return
