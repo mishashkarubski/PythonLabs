@@ -2,13 +2,13 @@
 import inspect
 import string
 import random
+
 from typing import (
     NoReturn,
-    Tuple,
-    Dict,
-    Callable
+    Callable,
+    Optional,
+    KeysView
 )
-
 from .user import User
 from ..constants.types import Command
 from ..constants.messages import (
@@ -26,23 +26,23 @@ from ..constants.messages import (
 class Console:
     """Console is a main class of the program.
 
-    It can create, delete, and manipulate users and storages.
+    Creates, deletes, and carries out other actions on users and storages.
     """
 
     def __init__(self):
         print(START_MESSAGE)
 
-        self.__user = None
-        self.__stop_early = False
+        self.__user: Optional[User] = None
+        self.__is_interrupted: bool = False
 
         while not self.__user or self.__user.verify_username(self.__user.username):
             try:
                 self.__user = User(input(USERNAME_REQUEST))
             except KeyboardInterrupt:
-                self.__stop_early = True
+                self.__is_interrupted = True
                 self.__user = User(random.choices(population=string.ascii_letters, k=10))
 
-        self.__commands = {
+        self.__commands: dict[str, Callable] = {
             Command.add.value: self.__user.add_keys,
             Command.remove.value: self.__user.remove_key,
             Command.find.value: self.__user.find_key,
@@ -64,44 +64,44 @@ class Console:
         self.user = User(new_username)
 
     @property
-    def commands(self) -> Dict[str, Callable]:
+    def commands(self) -> dict[str, Callable]:
         """Getter of attribute __commands"""
         return self.__commands
 
     @staticmethod
-    def parse_cmd() -> Tuple[str, Tuple[str]]:
-        """Parses command line input and returns tuple
+    def parse_cmd() -> tuple[str, tuple[str]]:
+        """Returns a tuple consisting of command and
 
-        containing command and its arguments.
-        """
-        raw_input = input(CLI_INPUT).split(maxsplit=1)
+        its arguments parsed from CLI input."""
+
+        raw_input: list[str] = input(CLI_INPUT).split(maxsplit=1)
 
         try:
-            return raw_input[0], (
-                tuple(raw_input[-1].split()) if len(raw_input) > 1
-                else tuple('')
+            return (
+                raw_input[0],
+                ('', raw_input[-1].split())[len(raw_input) > 1]
             )
         except IndexError:
             return '', tuple('')
 
-    def run(self, comm: str, args: Tuple[str]) -> NoReturn:
+    def run(self, comm: str, args: tuple[str]) -> NoReturn:
         """Runs the given command with the given arguments.
 
-        If something wrong, displays error message. Args:
-        1. comm: string
-        2. args: tuple of strings
+        If something wrong, displays error message.
+        :param comm: command to execute;
+        :param args: command's arguments.
         """
-        if comm == '':
+        if not comm:
             return
 
         if comm not in self.commands:
             print(INVALID_COMM_MESSAGE.format(comm))
             return
 
-        func = self.commands[comm]
-        func_params = inspect.signature(func).parameters
+        func: Callable = self.commands[comm] if comm else lambda x: None
+        func_params: KeysView[str] = inspect.signature(func).parameters.keys()
 
-        if (func_params and not args) or (args and not func_params):
+        if len(func_params) != len(args):
             print(INVALID_ARG_MESSAGE.format(", ".join(args)))
             return
 
@@ -110,7 +110,7 @@ class Console:
     def start_session(self) -> NoReturn:
         """Starts CLI session and turns on interactive mode"""
 
-        if self.__stop_early:
+        if self.__is_interrupted:
             print(END_MESSAGE)
             return
 
@@ -122,7 +122,7 @@ class Console:
                 return
 
     def stop_session(self):
-        """A wire..."""
+        """Makes necessary preparations before stopping a session."""
 
         try:
             ans = input(SAVE_QUESTION)

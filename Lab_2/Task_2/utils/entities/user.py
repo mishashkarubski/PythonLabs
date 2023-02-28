@@ -1,8 +1,9 @@
+"""This module defines the CLI user class. Users can
+mani"""
 from string import punctuation
 from typing import (
     Optional,
     NoReturn,
-    Tuple,
     Pattern
 )
 
@@ -11,7 +12,7 @@ from ..constants.messages import LOAD_QUESTION, INVALID_RESPONSE
 
 
 class User:
-    """Represents CLI user. Can operate the attached container, thus
+    """Represents a CLI user. Can operate the attached container, thus
 
     has access to its every method. Besides, can switch to other users."""
 
@@ -22,6 +23,11 @@ class User:
 
     @classmethod
     def verify_username(cls, username: str) -> bool:
+        """Checks if username consists only of latin letters and numbers
+
+        :param username: username to verify;
+        :return: True, if username is correct; False, otherwise.
+        """
         return bool(sum(char in username for char in punctuation))
 
     @property
@@ -39,36 +45,33 @@ class User:
         """Getter of attribute __container"""
         return self._container
 
-    def add_keys(self, keys: Tuple[str]) -> NoReturn:
-        """Adds keys to self.container
+    def add_keys(self, keys: tuple[str]) -> NoReturn:
+        """Adds keys to container
 
-        Arguments:
-        1. keys – tuple of keys to add to container."""
+        :param keys: tuple of keys to add to container."""
         self.container.add(keys)
 
-    def remove_key(self, key: Tuple[str]) -> NoReturn:
-        """Removes a single key from self.container
+    def remove_key(self, key: tuple[str]) -> NoReturn:
+        """Removes a single key from container
 
-        Arguments:
-        1. key: key to remove from self.container"""
-        self.container.remove(key[0])
+        :param key: single key tuple."""
+        self.container.remove(*key)
 
     def list_data(self) -> NoReturn:
         """Prints data in user-friendly format."""
         print(f"[{', '.join(self.container.list())}]")
 
-    def find_key(self, key: Tuple[str]) -> NoReturn:
+    def find_key(self, key: tuple[str]) -> NoReturn:
         """Prints the output of Storage's find method.
 
-        Arguments:
-        1. key: tuple consisting of one key"""
-        print(self.container.find(key[0]))
+        :param key: single key tuple."""
+        print(self.container.find(*key))
 
-    def grep_keys(self, regex: Tuple[str | Pattern | Pattern[bytes]]) -> NoReturn:
-        """Prints the output of Storage's find method."""
+    def grep_keys(self, regex: tuple[str | Pattern]) -> NoReturn:
+        """Prints the output of Storage's find method.
 
-        regex = regex[0]
-        print(self.container.grep(regex))
+        :param regex: single regex tuple."""
+        print(self.container.grep(*regex))
 
     def save_data(self) -> NoReturn:
         """Saves data to the file with user's name as a filename."""
@@ -78,20 +81,17 @@ class User:
         """Loads data from the file with user's name as a filename."""
         self.container.load(self.username)
 
-    def switch(self, new_username: Tuple[str]):
+    def switch(self, new_username: tuple[str]) -> NoReturn:
         """Switches to another user.
 
         While switching, can load other user's container if needed.
-        Arguments:
-        1. new_username: tuple of single string"""
-        ans = input(LOAD_QUESTION.format(new_username[0]))
+        :param new_username: other user's name to switch on.
+        """
+        ans: str = input(LOAD_QUESTION.format(new_username[0]))
 
-        if ans in ['y', 'n']:
-            self._container.load(
-                new_username[0] if ans == 'y' else '',
-                switch=(ans == 'y')
-            )
-            self.username = new_username[0]
-        else:
+        if ans == 'y':
+            self._container.load(new_username[0], switch=True)
+        elif ans != 'n':
             print(INVALID_RESPONSE)
-            return
+
+        self.username = new_username[0]
