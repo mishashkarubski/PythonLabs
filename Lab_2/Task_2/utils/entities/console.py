@@ -2,13 +2,12 @@
 import inspect
 import string
 import random
-
-from typing import (
-    NoReturn,
-    Callable,
-    Optional,
-    KeysView
+from typing import NoReturn
+from collections.abc import (
+    KeysView,
+    Callable
 )
+
 from .user import User
 from ..constants.types import Command
 from ..constants.messages import (
@@ -32,7 +31,7 @@ class Console:
     def __init__(self):
         print(START_MESSAGE)
 
-        self.__user: Optional[User] = None
+        self.__user: User | None = None
         self.__is_interrupted: bool = False
 
         while not self.__user or self.__user.verify_username(self.__user.username):
@@ -101,7 +100,7 @@ class Console:
         func: Callable = self.commands[comm] if comm else lambda x: None
         func_params: KeysView[str] = inspect.signature(func).parameters.keys()
 
-        if len(func_params) != len(args):
+        if len(func_params) != len(args) and comm != Command.add.value:
             print(INVALID_ARG_MESSAGE.format(", ".join(args)))
             return
 

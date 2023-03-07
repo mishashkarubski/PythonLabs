@@ -1,11 +1,8 @@
 """This module defines the CLI user class. Users can
 mani"""
 from string import punctuation
-from typing import (
-    Optional,
-    NoReturn,
-    Pattern
-)
+from re import Pattern
+from typing import NoReturn
 
 from .storage import Storage
 from ..constants.messages import LOAD_QUESTION, INVALID_RESPONSE
@@ -16,7 +13,7 @@ class User:
 
     has access to its every method. Besides, can switch to other users."""
 
-    def __init__(self, username: Optional[str] = None):
+    def __init__(self, username: str | None = None):
         self._username = username
         self._container = Storage()
         self._container.load(username)
@@ -31,7 +28,7 @@ class User:
         return bool(sum(char in username for char in punctuation))
 
     @property
-    def username(self) -> Optional[str]:
+    def username(self) -> str | None:
         """Getter of attribute __username"""
         return self._username
 
@@ -45,11 +42,11 @@ class User:
         """Getter of attribute __container"""
         return self._container
 
-    def add_keys(self, keys: tuple[str]) -> NoReturn:
+    def add_keys(self, *keys: tuple[str]) -> NoReturn:
         """Adds keys to container
 
         :param keys: tuple of keys to add to container."""
-        self.container.add(keys)
+        self.container.add(*keys)
 
     def remove_key(self, key: tuple[str]) -> NoReturn:
         """Removes a single key from container
@@ -67,7 +64,7 @@ class User:
         :param key: single key tuple."""
         print(self.container.find(*key))
 
-    def grep_keys(self, regex: tuple[str | Pattern]) -> NoReturn:
+    def grep_keys(self, regex: tuple[str | bytes | Pattern[bytes]]) -> NoReturn:
         """Prints the output of Storage's find method.
 
         :param regex: single regex tuple."""

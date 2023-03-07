@@ -4,14 +4,13 @@ Can be saved to and loaded from different .dmp files
 using pickle as a serialization tool.
 """
 import os
-import re
 import pickle
-from typing import (
-    NoReturn,
+from re import (
     Pattern,
-    Optional,
-    Any
+    match,
+    error
 )
+from typing import NoReturn
 
 
 class Storage:
@@ -26,7 +25,7 @@ class Storage:
     save/load – saves/loads container to/from file;
     switch – switches to another user.
     """
-    __SAVE_FOLDER = os.path.relpath("Lab_2/Task_2/data")
+    __SAVE_FOLDER = os.path.relpath("data/")
 
     def __init__(self):
         self.__data = set()
@@ -82,13 +81,13 @@ class Storage:
         :param  key: key to find in storage"""
         return key if key in self.data else "No such elements."
 
-    def grep(self, regex: str | Pattern | Pattern[bytes]) -> list:
+    def grep(self, regex: str | bytes | Pattern[bytes]) -> list:
         """Uses regular expressions to find elements in storage
 
         :param regex: regex-like object to filter data."""
         try:
-            return list(filter(lambda k: re.match(regex, k), self.data))
-        except re.error:
+            return list(filter(lambda k: match(regex, k), self.data))
+        except error:
             return []
 
     def load(self, source: str, switch=False) -> NoReturn:
@@ -96,7 +95,7 @@ class Storage:
 
         :param source: name of the source file to load data from;
         :param switch: if loading is performed on user switch or not."""
-        path: str = self.pathify(f"{source}.dmp")
+        path: str = self.pathify(f"{source}.pkl")
 
         if not self.__verify_path(path):
             if switch:
@@ -105,7 +104,7 @@ class Storage:
 
         with open(path, 'rb') as load_file:
             try:
-                new_data: Any = pickle.load(load_file)
+                new_data: set = pickle.load(load_file)
             except pickle.UnpicklingError:
                 new_data = set()
 
@@ -115,7 +114,7 @@ class Storage:
         """Saves data to the file with the given path.
 
         :param destination: name of the destination file to save data to."""
-        path: str = self.pathify(f"{destination}.dmp")
+        path: str = self.pathify(f"{destination}.pkl")
 
         with open(path, 'wb+') as save_file:
             pickle.dump(self.data, save_file)
