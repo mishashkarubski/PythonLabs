@@ -1,8 +1,14 @@
 """Unit tests for helper functions of Lab_2/Task_1"""
 import unittest
 
-from utils.helpers.words import average_word_length
-from utils.helpers.sentences import count_sentences, average_sentence_length
+from utils.helpers.words import (
+    average_word_length,
+    top_k_n_grams
+)
+from utils.helpers.sentences import (
+    count_sentences,
+    average_sentence_length
+)
 from utils.constants import TERM_MARKS
 
 
@@ -66,9 +72,9 @@ class TestCountNonDeclarative(unittest.TestCase):
 
 class TestAverageSentenceLength(unittest.TestCase):
     def test_zero_result(self):
+        self.assertEqual(average_sentence_length(""), 0)
         self.assertEqual(average_sentence_length(
             "  .. . . . .. !?? !?? ? !? ! ?! "), 0)
-        self.assertEqual(average_sentence_length(""), 0)
 
     def test_one_char_long(self):
         self.assertEqual(average_sentence_length("a...!??!!??!?!"), 1)
@@ -82,3 +88,19 @@ class TestAverageSentenceLength(unittest.TestCase):
     def test_many_sentences_many_words(self):
         self.assertAlmostEqual(average_sentence_length(
             "a b. c? abba!! abba, .. bobA AA..? .! . ?. sjf> as."), 3.67)
+
+
+class TestTopKNGrams(unittest.TestCase):
+    def test_zero_result(self):
+        self.assertEqual(top_k_n_grams(''), [])
+        self.assertEqual(top_k_n_grams('. - 123 123 123 123 234 234 6 !!'), [])
+        self.assertEqual(top_k_n_grams('akjsdnkjansdkjnasdkjn'), [])
+
+    def test_one_n_gram(self):
+        self.assertEqual(top_k_n_grams('a b c d'), ['a b c d'])
+
+    def test_four_n_grams(self):
+        self.assertEqual(
+            top_k_n_grams('a b c d a b c d')[0],
+            ['a b c d', 'b c d a', 'c d a b', 'd a b c'][0]
+        )

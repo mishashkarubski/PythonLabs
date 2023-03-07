@@ -12,4 +12,5 @@ PRECISION = 2
 SPECIAL_CHARS = set(string.punctuation) - (set(TERM_MARKS) | set(PUNCT_MARKS))
 
 # Abbreviations
-ABBREVIATIONS = 'mr. ms. mrs. etc. e.g. i.e. A.D. B.C. inc.'
+ABBREVIATIONS = '''dr. jr. sr. mr. ms. mrs. in. ft. etc. e.g. 
+i.e. a.d. b.c. c.e. b.c.e. inc. a.m. p.m.'''
