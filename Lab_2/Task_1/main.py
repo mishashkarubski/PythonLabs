@@ -12,7 +12,11 @@ def main():
         "Either enter the text manually " +
         "or specify the path to file with it: "
     )))
-    n, k = 4, 10
+    try:
+        n, k = map(int, input("Enter two numbers: ").split())
+    except (KeyboardInterrupt, ValueError, TypeError):
+        print("Invalid input. Using default arguments")
+        n, k = 4, 10
 
     print("1. Average word length in text (in chars) is",
           f"{average_word_length(text)}")

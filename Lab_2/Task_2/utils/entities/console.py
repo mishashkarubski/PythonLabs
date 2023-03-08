@@ -1,7 +1,6 @@
 """Program's CLI class for manipulating storages."""
 import inspect
-import string
-import random
+import sys
 from typing import NoReturn
 from collections.abc import (
     KeysView,
@@ -38,8 +37,8 @@ class Console:
             try:
                 self.__user = User(input(USERNAME_REQUEST))
             except KeyboardInterrupt:
-                self.__is_interrupted = True
-                self.__user = User(random.choices(population=string.ascii_letters, k=10))
+                print(END_MESSAGE)
+                sys.exit()
 
         self.__commands: dict[str, Callable] = {
             Command.add.value: self.__user.add_keys,
@@ -109,16 +108,11 @@ class Console:
     def start_session(self) -> NoReturn:
         """Starts CLI session and turns on interactive mode"""
 
-        if self.__is_interrupted:
-            print(END_MESSAGE)
-            return
-
         while True:
             try:
                 self.run(*self.parse_cmd())
             except KeyboardInterrupt:
                 self.stop_session()
-                return
 
     def stop_session(self):
         """Makes necessary preparations before stopping a session."""
@@ -126,11 +120,12 @@ class Console:
         try:
             ans = input(SAVE_QUESTION)
         except KeyboardInterrupt:
-            return
+            sys.exit()
 
         if not ans or ans not in ['y', 'n']:
             print(INVALID_RESPONSE)
-            return
+            sys.exit()
 
         self.run('save' if ans == 'y' else '', tuple(''))
         print(END_MESSAGE)
+        sys.exit()

@@ -1,0 +1,22 @@
+version: "1"
+
+volumes:
+  t1data:
+  t2data:
+
+services:
+  task1:
+    build: Task_1
+    restart: always
+    volumes:
+      - t1data:/Users/mishashkarubski/PythonLabs/Lab_2/Task_1/public
+    stdin_open: true
+    tty: true
+
+  task2:
+    build: Task_2
+    restart: always
+    volumes:
+      - t2data:/Users/mishashkarubski/PythonLabs/Lab_2/Task_2/data
+    stdin_open: true
+    tty: true
