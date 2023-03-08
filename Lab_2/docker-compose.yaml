@@ -6,7 +6,7 @@ volumes:
 
 services:
   task1:
-    build: Task_1
+    build: ../Lab_1/Task_1
     restart: always
     volumes:
       - t1data:/Users/mishashkarubski/PythonLabs/Lab_2/Task_1/public
@@ -14,7 +14,7 @@ services:
     tty: true
 
   task2:
-    build: Task_2
+    build: ../Lab_1/Task_2
     restart: always
     volumes:
       - t2data:/Users/mishashkarubski/PythonLabs/Lab_2/Task_2/data

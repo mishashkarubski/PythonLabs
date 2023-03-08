@@ -128,10 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# IDE files and miscelanious
+# IDE and OS files
 .idea
 .fleet
 .DS_Store
 
 # Data-storing files
 *.dmp
+*.pkl
