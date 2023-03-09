@@ -31,7 +31,7 @@ def multireplace(text: str, replace_dict: dict[str]) -> str:
     }
     pattern = re.compile("|".join(replace_dict.keys()), re.IGNORECASE)
 
-    return pattern.sub(lambda m: replace_dict[re.escape(m.group(0).lower())], text)
+    return pattern.sub(lambda m: replace_dict[re.escape(m.group().lower())], text)
 
 
 def process_text(text: str) -> str:
