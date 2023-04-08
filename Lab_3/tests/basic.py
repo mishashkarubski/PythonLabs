@@ -1,6 +1,5 @@
 import os.path
 import unittest
-from types import NoneType
 
 from Lab_3.utils.serialize import JSONSerializer
 from config import DATA_DIR
