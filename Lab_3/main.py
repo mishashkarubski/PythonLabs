@@ -11,12 +11,7 @@ def main():
     """Carries out the subtasks of Lab_3"""
     json = JSONSerializer()
     ahuha = json.loads(json.dumps(aboba))
-    print(dir(ahuha.__code__) == dir(aboba.__code__))
-    print(aboba.__code__.co_code == ahuha.__code__.co_code)
-    print(aboba.__code__.co_code)
-    print(ahuha.__code__.co_code)
-
-    # print(json._process_dict(json._parse_dictlike(json.dumps(aboba))))
+    print(ahuha(5, 6))
 
 
 if __name__ == '__main__':

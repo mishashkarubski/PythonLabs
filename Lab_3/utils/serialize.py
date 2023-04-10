@@ -9,20 +9,10 @@ from .templates.json_template import FUNCTION_TEMPLATE
 
 class Serializer(ABC):
     _BASE_TYPES = [int, float, complex, bytes, str, NoneType, bool]
+    _KEYWORDS = {'None': None, 'True': True, 'False': False}
 
     def __init__(self):
         pass
-
-    @staticmethod
-    def _apply_base_types(types, s: str) -> Any:
-        results = []
-        for t in types:
-            try:
-                results.append(t(s.strip('()')))
-            except (ValueError, TypeError):
-                results.append(None)
-
-        return tuple(filter(lambda x: x is not None, results))[0]
 
     @abstractmethod
     def dump(self, obj: Any, fp: IO[str]) -> None:
@@ -68,39 +58,39 @@ class JSONSerializer(Serializer):
         super().__init__()
 
     @staticmethod
-    def _parse_dictlike(cls: str) -> dict[str, str]:
-        function_meta = re.findall(
-            r'(\w+):\s?(.*)',
-            cls.replace(",", "").replace("{", "")
-        )
-        return dict(function_meta[1:])
+    def _parse_template(template: str) -> dict[str, str]:
+        return dict(re.findall(r'(\w+):\s?([^,{]*)', template)[1:])
 
     @classmethod
-    def _process_dict(cls, data: dict[str, str]) -> dict[str, Any]:
+    def _apply_base_types(cls, s: str) -> Any:
+        if s in cls._KEYWORDS:
+            return cls._KEYWORDS[s]
+
+        for base_type in cls._BASE_TYPES:
+            try:
+                return base_type(s)
+            except (ValueError, TypeError):
+                pass
+
+        return None
+
+    @classmethod
+    def _typify(cls, data: dict[str, str]) -> dict[str, Any]:
         mid_data = {
-            key: cls._apply_base_types(cls._BASE_TYPES, value)
+            key: cls._apply_base_types(value)
             for key, value in data.items()
         }
 
-        for k, v in data.items():
-            if " " in v:
-                mid_data[k] = tuple(map(
-                    lambda x: cls._apply_base_types(cls._BASE_TYPES, x),
-                    v.split()
+        for key, value in data.items():
+            if " " in value:
+                mid_data[key] = tuple(map(
+                    lambda x: cls._apply_base_types(x),
+                    value.split()
                 ))
-                if k == "consts":
-                    mid_data[k] = (None, *list(map(
-                        lambda x: cls._apply_base_types(cls._BASE_TYPES, x),
-                        v.split()
-                    ))[1:])
-            if k == "names":
-                mid_data[k] = tuple()
-            if "b'" in v:
-                print()
-                print(v)
-                print()
-                mid_data[k] = v.encode('unicode-escape').decode('unicode-escape').encode()
-                print(mid_data[k])
+            if key == "names":
+                mid_data[key] = tuple(value)
+            if key == "codestring" or key == "lnotab":
+                mid_data[key] = value.encode()
 
         return mid_data
 
@@ -126,22 +116,21 @@ class JSONSerializer(Serializer):
             return f"{repr(obj)}"
 
         if isinstance(obj, FunctionType):
-            code_info = obj.__code__
             return FUNCTION_TEMPLATE.format(
-                name=code_info.co_name,
-                argcount=code_info.co_argcount,
-                posonlyargcount=code_info.co_posonlyargcount,
-                kwonlyargcount=code_info.co_kwonlyargcount,
-                nlocals=code_info.co_nlocals,
-                stacksize=code_info.co_stacksize,
-                flags=code_info.co_flags,
-                code=code_info.co_code,
-                consts=code_info.co_consts,
-                names=code_info.co_names,
-                varnames=' '.join(code_info.co_varnames),
-                filename=code_info.co_filename,
-                firstlineno=code_info.co_firstlineno,
-                lnotab=code_info.co_lnotab,
+                name=obj.__code__.co_name,
+                argcount=obj.__code__.co_argcount,
+                posonlyargcount=obj.__code__.co_posonlyargcount,
+                kwonlyargcount=obj.__code__.co_kwonlyargcount,
+                nlocals=obj.__code__.co_nlocals,
+                stacksize=obj.__code__.co_stacksize,
+                flags=obj.__code__.co_flags,
+                code=obj.__code__.co_code.decode('unicode-escape'),
+                consts=' '.join(map(str, obj.__code__.co_consts)),
+                names=' '.join(obj.__code__.co_names),
+                varnames=' '.join(obj.__code__.co_varnames),
+                filename=obj.__code__.co_filename,
+                firstlineno=obj.__code__.co_firstlineno,
+                lnotab=obj.__code__.co_lnotab.decode('unicode-escape'),
             )
 
     def load(self, fp: IO[str]):
@@ -166,8 +155,6 @@ class JSONSerializer(Serializer):
             return s.strip("'\"")
 
         return FunctionType(
-            code=CodeType(*self._process_dict(
-                self._parse_dictlike(s)
-            ).values()),
+            code=CodeType(*self._typify(self._parse_template(s)).values()),
             globals=globals()
         )
