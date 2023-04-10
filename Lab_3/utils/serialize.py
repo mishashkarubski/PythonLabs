@@ -87,7 +87,7 @@ class JSONSerializer(Serializer):
                     lambda x: cls._apply_base_types(x),
                     value.split()
                 ))
-            if key == "names":
+            if key == "names" or key == "varnames":
                 mid_data[key] = tuple(value)
             if key == "codestring" or key == "lnotab":
                 mid_data[key] = value.encode()
