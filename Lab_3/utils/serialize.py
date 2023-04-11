@@ -1,10 +1,10 @@
 """Serialization of Lab_3"""
 import re
 from abc import ABC, abstractmethod
-from types import FunctionType, CodeType
+from types import FunctionType, CodeType, NoneType, LambdaType, MethodType
 from typing import Callable, Any, IO, Hashable
 
-from .templates.json_template import FUNCTION_TEMPLATE
+from .templates.json_template import CALLABLE_TEMPLATE
 
 
 class Serializer(ABC):
@@ -64,6 +64,20 @@ class JSONSerializer(Serializer):
     @staticmethod
     def _get_key(value: Hashable, data: dict):
         return [key for key in data if data[key] == value][0]
+
+    @staticmethod
+    def _get_obj_type(s: str) -> type:
+        obj_type = re.search(r"<class '(\w\S+)'>_", s)
+
+        if not obj_type:
+            return NoneType
+
+        if obj_type.group(1) == 'function':
+            return FunctionType
+        elif obj_type.group(1) == 'lambda':
+            return LambdaType
+        elif obj_type.group(1) == 'method':
+            return MethodType
 
     @classmethod
     def _numeric(cls, s: str) -> Any:
@@ -129,7 +143,8 @@ class JSONSerializer(Serializer):
             return str(obj)
 
         if isinstance(obj, FunctionType):
-            return FUNCTION_TEMPLATE.format(
+            return CALLABLE_TEMPLATE.format(
+                type=type(obj),
                 id=hex(id(obj)),
                 argcount=obj.__code__.co_argcount,
                 posonlyargcount=obj.__code__.co_posonlyargcount,
@@ -145,6 +160,26 @@ class JSONSerializer(Serializer):
                 name=obj.__code__.co_name,
                 firstlineno=obj.__code__.co_firstlineno,
                 lnotab=obj.__code__.co_lnotab.decode('unicode-escape'),
+            )
+
+        if isinstance(obj, MethodType):
+            return CALLABLE_TEMPLATE.format(
+                type=type(obj),
+                id=hex(id(obj)),
+                argcount=obj.__func__.__code__.co_argcount,
+                posonlyargcount=obj.__func__.__code__.co_posonlyargcount,
+                kwonlyargcount=obj.__func__.__code__.co_kwonlyargcount,
+                nlocals=obj.__func__.__code__.co_nlocals,
+                stacksize=obj.__func__.__code__.co_stacksize,
+                flags=obj.__func__.__code__.co_flags,
+                code=obj.__func__.__code__.co_code.decode('unicode-escape'),
+                consts=' '.join(map(str, obj.__func__.__code__.co_consts)),
+                names=' '.join(obj.__func__.__code__.co_names),
+                varnames=' '.join(obj.__func__.__code__.co_varnames),
+                filename=obj.__func__.__code__.co_filename,
+                name=obj.__func__.__code__.co_name,
+                firstlineno=obj.__func__.__code__.co_firstlineno,
+                lnotab=obj.__func__.__code__.co_lnotab.decode('unicode-escape'),
             )
 
     def load(self, fp: IO[str]):
@@ -173,7 +208,8 @@ class JSONSerializer(Serializer):
         if self._numeric(s) is not None:
             return self._numeric(s)
 
-        return FunctionType(
-            code=CodeType(*self._typify_dict(self._template_to_dict(s)).values()),
-            globals=globals()
-        )
+        if issubclass(self._get_obj_type(s), FunctionType):
+            return self._get_obj_type(s)(
+                code=CodeType(*self._typify_dict(self._template_to_dict(s)).values()),
+                globals=globals()
+            )

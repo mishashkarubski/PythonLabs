@@ -1,6 +1,6 @@
 """Amoga"""
-FUNCTION_TEMPLATE = ('''{{
-    "function_{id}": {{
+CALLABLE_TEMPLATE = ('''{{
+    "{type}_{id}": {{
         "argcount": "{argcount}",
         "posonlyargcount": "{posonlyargcount}",
         "kwonlyargcount": "{kwonlyargcount}",
