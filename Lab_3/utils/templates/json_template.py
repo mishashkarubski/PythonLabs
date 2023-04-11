@@ -1,6 +1,11 @@
 """Amoga"""
-CALLABLE_TEMPLATE = ('''{{
-    "{type}_{id}": {{
+ITERABLE = ('''{{
+    "{type}_{id:x}": {{
+        "items": "{items}"
+    }}
+}}''')
+CALLABLE = ('''{{
+    "{type}_{id:x}": {{
         "argcount": "{argcount}",
         "posonlyargcount": "{posonlyargcount}",
         "kwonlyargcount": "{kwonlyargcount}",
