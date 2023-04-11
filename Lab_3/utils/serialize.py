@@ -1,15 +1,15 @@
 """Serialization of Lab_3"""
 import re
 from abc import ABC, abstractmethod
-from types import NoneType, FunctionType, CodeType
-from typing import Callable, Any, IO
+from types import FunctionType, CodeType
+from typing import Callable, Any, IO, Hashable
 
 from .templates.json_template import FUNCTION_TEMPLATE
 
 
 class Serializer(ABC):
-    _BASE_TYPES = [int, float, complex, bytes, str, NoneType, bool]
-    _KEYWORDS = {'None': None, 'True': True, 'False': False}
+    _NUMERICS = [int, float, complex]
+    _KEYWORDS = {None: 'null', True: 'true', False: 'false'}
 
     def __init__(self):
         pass
@@ -58,41 +58,52 @@ class JSONSerializer(Serializer):
         super().__init__()
 
     @staticmethod
-    def _parse_template(template: str) -> dict[str, str]:
-        return dict(re.findall(r'(\w+):\s?([^,{]*)', template)[1:])
+    def _template_to_dict(template: str) -> dict[str, str]:
+        return dict(re.findall(r'"(\w+)":\s?"([^,{]*)"', template))
+
+    @staticmethod
+    def _get_key(value: Hashable, data: dict):
+        return [key for key in data if data[key] == value][0]
 
     @classmethod
-    def _apply_base_types(cls, s: str) -> Any:
-        if s in cls._KEYWORDS:
-            return cls._KEYWORDS[s]
-
-        for base_type in cls._BASE_TYPES:
+    def _numeric(cls, s: str) -> Any:
+        for num_type in cls._NUMERICS:
             try:
-                return base_type(s)
+                return num_type(s)
             except (ValueError, TypeError):
                 pass
 
-        return None
+    @classmethod
+    def _typify_list(cls, lst: list[str]):
+        temp_lst = lst.copy()
+
+        for index, item in enumerate(temp_lst):
+            if cls._numeric(item) is not None:
+                temp_lst[index] = cls._numeric(item)
+
+            elif item in cls._KEYWORDS.values():
+                temp_lst[index] = cls._get_key(item, cls._KEYWORDS)
+
+        return temp_lst
 
     @classmethod
-    def _typify(cls, data: dict[str, str]) -> dict[str, Any]:
-        mid_data = {
-            key: cls._apply_base_types(value)
-            for key, value in data.items()
-        }
+    def _typify_dict(cls, data: dict[str, str]) -> dict[str, Any]:
+        temp_data: dict[str, Any] = data.copy()
 
-        for key, value in data.items():
-            if " " in value:
-                mid_data[key] = tuple(map(
-                    lambda x: cls._apply_base_types(x),
-                    value.split()
-                ))
-            if key == "names" or key == "varnames":
-                mid_data[key] = tuple(value)
+        for key, value in temp_data.items():
+            if cls._numeric(value) is not None:
+                temp_data[key] = cls._numeric(value)
+
+            if value in cls._KEYWORDS.values():
+                temp_data[key] = cls._get_key(value, cls._KEYWORDS)
+
             if key == "codestring" or key == "lnotab":
-                mid_data[key] = value.encode()
+                temp_data[key] = value.encode()
 
-        return mid_data
+            if key in ("consts", "names", "varnames"):
+                temp_data[key] = tuple(cls._typify_list(value.split()))
+
+        return temp_data
 
     def dump(self, obj: Any, fp: IO[str]) -> None:
         """Dumps an object to .json file.
@@ -100,11 +111,7 @@ class JSONSerializer(Serializer):
         :param obj: object to dump.
         :param fp: json file object.
         """
-        if type(obj) in self._BASE_TYPES:
-            if type(obj) == str:
-                fp.write(f'"{obj}"')
-            else:
-                fp.write(str(obj))
+        fp.write(self.dumps(obj))
 
     def dumps(self, obj: Any) -> str:
         """Dumps an object to a string and returns the string.
@@ -112,12 +119,18 @@ class JSONSerializer(Serializer):
         :param obj: object to dump.
         :return: string containing serialized (dumped) object.
         """
-        if type(obj) in self._BASE_TYPES:
-            return f"{repr(obj)}"
+        if obj in self._KEYWORDS:
+            return self._KEYWORDS[obj]
+
+        if type(obj) == str:
+            return f'"{obj}"'
+
+        if type(obj) in self._NUMERICS:
+            return str(obj)
 
         if isinstance(obj, FunctionType):
             return FUNCTION_TEMPLATE.format(
-                name=obj.__code__.co_name,
+                id=hex(id(obj)),
                 argcount=obj.__code__.co_argcount,
                 posonlyargcount=obj.__code__.co_posonlyargcount,
                 kwonlyargcount=obj.__code__.co_kwonlyargcount,
@@ -129,6 +142,7 @@ class JSONSerializer(Serializer):
                 names=' '.join(obj.__code__.co_names),
                 varnames=' '.join(obj.__code__.co_varnames),
                 filename=obj.__code__.co_filename,
+                name=obj.__code__.co_name,
                 firstlineno=obj.__code__.co_firstlineno,
                 lnotab=obj.__code__.co_lnotab.decode('unicode-escape'),
             )
@@ -139,8 +153,7 @@ class JSONSerializer(Serializer):
         :param fp: json file object to extract object from.
         :return: deserialized Python object.
         """
-        fp_content: str = fp.read()
-        return self.loads(fp_content)
+        return self.loads(fp.read())
 
     def loads(self, s: str) -> Any:
         """Loads an object from a string and returns it.
@@ -151,10 +164,16 @@ class JSONSerializer(Serializer):
         if not len(s):
             return
 
-        if s.startswith("'") or s.startswith('"'):
-            return s.strip("'\"")
+        if s in self._KEYWORDS.values():
+            return self._get_key(s, self._KEYWORDS)
+
+        if s.startswith('"'):
+            return s.strip('"')
+
+        if self._numeric(s) is not None:
+            return self._numeric(s)
 
         return FunctionType(
-            code=CodeType(*self._typify(self._parse_template(s)).values()),
+            code=CodeType(*self._typify_dict(self._template_to_dict(s)).values()),
             globals=globals()
         )

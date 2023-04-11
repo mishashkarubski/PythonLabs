@@ -14,17 +14,15 @@ def test_func_2(x, y):
 class JSONFunctionsCase(unittest.TestCase):
     ser = JSONSerializer()
 
-    def test_obe_argument(self):
+    def test_one_argument(self):
         self.assertEqual(
-            self.ser.loads(self.ser.dumps(test_func_1)).__code__,
-            test_func_1.__code__
-        )
+            self.ser.loads(self.ser.dumps(test_func_1))(0),
+            test_func_1(0))
 
     def test_two_arguments(self):
         self.assertEqual(
-            self.ser.loads(self.ser.dumps(test_func_2)).__code__,
-            test_func_2.__code__
-        )
+            self.ser.loads(self.ser.dumps(test_func_2))(0, 0),
+            test_func_2(0, 0))
 
 
 if __name__ == '__main__':

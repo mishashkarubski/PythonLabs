@@ -9,21 +9,22 @@ class JSONBasicTypesCase(unittest.TestCase):
     ser = JSONSerializer()
 
     def test_dumps_only(self):
-        self.assertEqual(self.ser.dumps("14"), "'14'")
+        self.assertEqual(self.ser.dumps("14"), '"14"')
         self.assertEqual(self.ser.dumps(14), "14")
         self.assertEqual(self.ser.dumps(14.0), "14.0")
         self.assertEqual(self.ser.dumps(14j+0.9), "(0.9+14j)")
-        self.assertEqual(self.ser.dumps("False"), "'False'")
-        self.assertEqual(self.ser.dumps(False), "False")
-        self.assertEqual(self.ser.dumps(""), "''")
+        self.assertEqual(self.ser.dumps("False"), '"False"')
+        self.assertEqual(self.ser.dumps(False), "false")
+        self.assertEqual(self.ser.dumps(""), '""')
 
     def test_loads_only(self):
-        self.assertEqual(self.ser.loads("'14'"), "14")
+        self.assertEqual(self.ser.loads('"14"'), "14")
         self.assertEqual(self.ser.loads("14"), 14)
         self.assertEqual(self.ser.loads("14.0"), 14.0)
         self.assertEqual(self.ser.loads("(0.9+14j)"), 0.9+14j)
-        self.assertEqual(self.ser.loads("False"), False)
-        self.assertEqual(self.ser.loads("'False'"), "False")
+        self.assertEqual(self.ser.loads("false"), False)
+        self.assertEqual(self.ser.loads('"False"'), "False")
+        self.assertEqual(self.ser.loads('""'), "")
         self.assertEqual(self.ser.loads(""), None)
 
     def test_dumps_and_loads(self):
