@@ -1,1 +1,1 @@
-DATA_DIR = "test_data"
+DATA_DIR = "data"

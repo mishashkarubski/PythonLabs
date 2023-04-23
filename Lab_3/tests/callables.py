@@ -2,13 +2,15 @@ import unittest
 
 from Lab_3.utils.serialize import JSONSerializer
 
+TEST_GLOBAL_1 = 19
+
 
 def test_func_1(x):
     return x + 2
 
 
 def test_func_2(x, y):
-    return x ** 2 + 2 * y
+    return TEST_GLOBAL_1 + (x ** 2 + 2 * y)
 
 
 class FunctionsCase(unittest.TestCase):
@@ -30,10 +32,8 @@ class LambdasCase(unittest.TestCase):
 
     def test_basic_lambdas(self):
         self.assertEqual(
-            self.json_ser.loads(
-                self.json_ser.dumps(lambda x: x**2 / 2)
-            )(10),
-            (lambda x: x**2 / 2)(10))
+            self.json_ser.loads(self.json_ser.dumps(lambda x: x**2 / 2))(10),
+            (lambda x: x ** 2 / 2)(10))
         self.assertEqual(
             self.json_ser.loads(
                 self.json_ser.dumps(lambda x, y, z: (x + y - z) ** 2 / 2)

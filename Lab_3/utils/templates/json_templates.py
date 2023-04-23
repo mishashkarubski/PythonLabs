@@ -1,11 +1,16 @@
 """Amoga"""
+DICTIONARY = ('''{{
+    "<class 'dict'>_{id:x}": {{
+    {items}
+    }}
+}}''')
 ITERABLE = ('''{{
     "{type}_{id:x}": {{
-        "items": "{items}"
+        "items": {items}
     }}
 }}''')
 CALLABLE = ('''{{
-    "{type}_{id:x}": {{
+        "{type}_{id:x}": {{
         "argcount": "{argcount}",
         "posonlyargcount": "{posonlyargcount}",
         "kwonlyargcount": "{kwonlyargcount}",
@@ -20,5 +25,6 @@ CALLABLE = ('''{{
         "name": "{name}",
         "firstlineno": "{firstlineno}",
         "lnotab": "{lnotab}"
+        "globals": {globals}
     }}
 }}''')
