@@ -10,7 +10,7 @@ def test_func_1(x):
 
 
 def test_func_2(x, y):
-    return TEST_GLOBAL_1 + (x ** 2 + 2 * y)
+    return x ** 2 + 2 * y
 
 
 class FunctionsCase(unittest.TestCase):
