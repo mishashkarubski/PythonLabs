@@ -29,12 +29,6 @@ class Formatter:
 
             items_repr += f"\t{dumps(k)}: {{\n"
 
-            try:
-                dumps(v).split()
-            except:
-                print()
-                print(v)
-
             for line in dumps(v).split("\n")[1:]:
                 items_repr += f"{self.move_line(line, 1)}\n"
 

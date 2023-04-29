@@ -1,7 +1,7 @@
 """Serialization of Lab_3"""
 import re
 from collections.abc import Collection
-from types import FunctionType, CodeType, NoneType, CellType
+from types import FunctionType, CodeType, NoneType, CellType, MethodType
 from typing import Hashable, Iterable, Iterator
 
 from .base import Serializer
@@ -9,7 +9,6 @@ from .helpers import Formatter
 from .templates import JSON
 
 
-# TODO *5: Add method serialization support (+ tests).
 # TODO *6: Add scope serialization support (+ tests).
 # TODO *7: Add library serialization support (+ tests).
 
@@ -34,25 +33,24 @@ class JSONSerializer(Serializer):
         lines: list[str] = template.split("\n")
         it: Iterator[str] = enumerate(lines)
 
-        for i, l in it:
-            if not re.search(r'\s*(.+):\s*([^,]*)', l):
+        for i, line in it:
+            if not re.search(r'\s*(.+):\s*([^,]*)', line):
                 continue
 
-            key, value = re.search(r'\s*(.+):\s*([^,]*)', l).groups()
+            key, value = re.search(r'\s*(.+):\s*([^,]*)', line).groups()
 
             if value != "{":
                 obj[self.loads(key)] = self.loads(value)
 
-            elif value == "{" and "class" not in key:
+            elif value == "{" and "<class" not in key:
                 brackets = 1
                 start = i + 1
 
                 while brackets and i < len(lines) - 1:
-                    i += 1
+                    i, line = next(it, None)
                     brackets += ("{" in lines[i]) - ("}" in lines[i])
 
                 obj[self.loads(key)] = self.loads('\n'.join(lines[start:i]))
-                [next(it, None) for _ in range(i + 1 - start)]
 
         return obj
 
@@ -137,19 +135,40 @@ class JSONSerializer(Serializer):
                     "cellvars": obj.__code__.co_cellvars,
                     "globals": {
                         k: obj.__globals__[k]
-                        for k in set(obj.__globals__) & set(obj.__code__.co_names)
+                        for k in set(obj.__globals__) & set(obj.__code__.co_names) - {obj.__name__}
                     },
                     "closure": closure,
                     "qualname": obj.__qualname__
                 }, self.dumps),
             )
-        elif isinstance(obj, type):
+        elif isinstance(obj, MethodType):
+            return JSON.format(
+                type=type(obj),
+                id=id(obj),
+                items=Formatter().to_json({
+                    "__func__": obj.__func__,
+                    "__self__": obj.__self__
+                }, self.dumps)
+            )
+        elif issubclass(type(obj), type):
             return JSON.format(
                 type=type(obj),
                 id=id(obj),
                 items=Formatter().to_json({
                     'name': obj.__name__,
                     'mro': tuple(obj.mro()[1:-1]),
+                    'attrs': {
+                        k: v for k, v in obj.__dict__.items()
+                        if k not in self._NOT_SERIALIZABLE
+                    }
+                }, self.dumps)
+            )
+        else:
+            return JSON.format(
+                type=object,
+                id=id(obj),
+                items=Formatter().to_json({
+                    'class': obj.__class__,
                     'attrs': {
                         k: v for k, v in obj.__dict__.items()
                         if k not in self._NOT_SERIALIZABLE
@@ -179,8 +198,8 @@ class JSONSerializer(Serializer):
         elif self._to_number(s) is not None:
             return self._to_number(s)
 
-        obj_type = self._obj_type_from_template(s, r"<class '(\w\S+)'>_")
-        obj_data = self._load_from_dictlike_str(s)
+        obj_type: type = self._obj_type_from_template(s, r"<class '(\w\S+)'>_")
+        obj_data: dict = self._load_from_dictlike_str(s)
 
         if issubclass(obj_type, dict):
             return obj_data
@@ -206,13 +225,24 @@ class JSONSerializer(Serializer):
                 closure=closure
             )
             obj.__qualname__ = obj_data['qualname']
+            obj.__globals__[obj.__name__] = obj
 
             return obj
-        elif isinstance(obj_type, type):
+        elif issubclass(obj_type, MethodType):
+            return MethodType(
+                obj_data['__func__'],
+                obj_data['__self__'],
+            )
+        elif issubclass(obj_type, type):
             obj = type(obj_data['name'], obj_data['mro'], obj_data['attrs'])
             try:
                 obj.__init__.__closure__[0].cell_contents = obj
             except (AttributeError, IndexError):
                 ...
+
+            return obj
+        else:
+            obj = object.__new__(obj_data['class'])
+            obj.__dict__ = obj_data['attrs']
 
             return obj

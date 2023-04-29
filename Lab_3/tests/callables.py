@@ -26,6 +26,9 @@ def test_func_3(x, y, operation):
 
     return inner_test_func_3(y / x)
 
+def factorial(n):
+    return n * factorial(n - 1) if n > 1 else 1
+
 
 class FunctionsCase(unittest.TestCase):
     json_ser = JSONSerializer()
@@ -50,6 +53,12 @@ class FunctionsCase(unittest.TestCase):
         self.assertEqual(
             self.json_ser.loads(self.json_ser.dumps(test_func_3))(2, -3, lambda x: x**2),
             test_func_3(2, -3, lambda x: x**2))
+
+    def test_recursions(self):
+        self.assertEqual(
+            self.json_ser.loads(self.json_ser.dumps(factorial))(5),
+            factorial(5)
+        )
 
 
 class LambdasCase(unittest.TestCase):

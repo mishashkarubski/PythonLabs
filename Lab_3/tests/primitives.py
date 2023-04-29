@@ -2,7 +2,7 @@ import os.path
 import unittest
 
 from Lab_3.utils.serialize import JSONSerializer
-from config import DATA_DIR
+from tests import DATA_DIR
 
 
 class JSONBasicTypesCase(unittest.TestCase):

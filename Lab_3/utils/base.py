@@ -52,6 +52,8 @@ class Serializer(ABC):
             return MethodType
         elif obj_type == 'type':
             return type
+        elif obj_type == 'object':
+            return object
 
     def dump(self, obj: Any, fp: IO[str]) -> None:
         """Dumps an object to .json file.
