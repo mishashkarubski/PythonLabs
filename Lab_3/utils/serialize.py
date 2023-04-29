@@ -1,7 +1,7 @@
 """Serialization of Lab_3"""
 import re
 from collections.abc import Collection
-from types import FunctionType, CodeType, NoneType
+from types import FunctionType, CodeType, NoneType, CellType
 from typing import Hashable, Iterable, Iterator
 
 from .base import Serializer
@@ -9,9 +9,7 @@ from .helpers import Formatter
 from .templates import JSON
 
 
-# TODO *3: Add globals and closures support for function serialization (+ tests).
-# TODO *4: Add method serialization support (+ tests).
-# TODO *5: Add class & object serialization support (+ tests).
+# TODO *5: Add method serialization support (+ tests).
 # TODO *6: Add scope serialization support (+ tests).
 # TODO *7: Add library serialization support (+ tests).
 
@@ -46,9 +44,15 @@ class JSONSerializer(Serializer):
                 obj[self.loads(key)] = self.loads(value)
 
             elif value == "{" and "class" not in key:
-                n_lines = ["}" in line for line in lines[i+1:]].index(True) + 2
-                obj[self.loads(key)] = self.loads('\n'.join(lines[i+1:i+n_lines]))
-                [next(it, None) for _ in range(n_lines)]
+                brackets = 1
+                start = i + 1
+
+                while brackets and i < len(lines) - 1:
+                    i += 1
+                    brackets += ("{" in lines[i]) - ("}" in lines[i])
+
+                obj[self.loads(key)] = self.loads('\n'.join(lines[start:i]))
+                [next(it, None) for _ in range(i + 1 - start)]
 
         return obj
 
@@ -63,6 +67,8 @@ class JSONSerializer(Serializer):
         """
         if type(obj) == str:
             return f'"{obj}"'
+        if type(obj) == type(Ellipsis):
+            return ' '
         elif type(obj) in self._NUMERICS:
             return str(obj)
         elif isinstance(obj, Hashable) and type(obj) in [bool, NoneType]:
@@ -74,38 +80,84 @@ class JSONSerializer(Serializer):
                 id=id(obj),
                 items=Formatter().to_json(obj, self.dumps),
             )
-
-        if isinstance(obj, Collection):
+        elif isinstance(obj, Collection):
             return JSON.format(
                 type=type(obj),
                 id=id(obj),
                 items=Formatter().to_json(dict(zip(range(len(obj)), obj)), self.dumps)
             )
-
-        if isinstance(obj, FunctionType):
-            func_code = {
-                "argcount": obj.__code__.co_argcount,
-                "posonlyargcount": obj.__code__.co_posonlyargcount,
-                "kwonlyargcount": obj.__code__.co_kwonlyargcount,
-                "nlocals": obj.__code__.co_nlocals,
-                "stacksize": obj.__code__.co_stacksize,
-                "flags": obj.__code__.co_flags,
-                "code": obj.__code__.co_code.decode('unicode-escape'),
-                "consts": obj.__code__.co_consts,
-                "names": obj.__code__.co_names,
-                "varnames": obj.__code__.co_varnames,
-                "filename": obj.__code__.co_filename,
-                "name": obj.__code__.co_name,
-                "firstlineno": obj.__code__.co_firstlineno,
-                "lnotab": obj.__code__.co_lnotab.decode('unicode-escape'),
-                "globals": {},
-            }
+        elif isinstance(obj, CodeType):
             return JSON.format(
                 type=type(obj),
                 id=id(obj),
-                items=Formatter().to_json(func_code, self.dumps),
+                items=Formatter().to_json({
+                    "argcount": obj.co_argcount,
+                    "posonlyargcount": obj.co_posonlyargcount,
+                    "kwonlyargcount": obj.co_kwonlyargcount,
+                    "nlocals": obj.co_nlocals,
+                    "stacksize": obj.co_stacksize,
+                    "flags": obj.co_flags,
+                    "code": obj.co_code,
+                    "consts": obj.co_consts,
+                    "names": obj.co_names,
+                    "varnames": obj.co_varnames,
+                    "filename": obj.co_filename,
+                    "name": obj.co_name,
+                    "firstlineno": obj.co_firstlineno,
+                    "lnotab": obj.co_lnotab,
+                    "freevars": obj.co_freevars,
+                    "cellvars": obj.co_cellvars,
+                }, self.dumps)
+            )
+        elif isinstance(obj, FunctionType):
+            if "__class__" in obj.__code__.co_freevars and obj.__closure__:
+                closure = ([... for _ in obj.__closure__])
+            else:
+                closure = obj.__closure__
+
+            return JSON.format(
+                type=type(obj),
+                id=id(obj),
+                items=Formatter().to_json({
+                    "argcount": obj.__code__.co_argcount,
+                    "posonlyargcount": obj.__code__.co_posonlyargcount,
+                    "kwonlyargcount": obj.__code__.co_kwonlyargcount,
+                    "nlocals": obj.__code__.co_nlocals,
+                    "stacksize": obj.__code__.co_stacksize,
+                    "flags": obj.__code__.co_flags,
+                    "code": obj.__code__.co_code,
+                    "consts": obj.__code__.co_consts,
+                    "names": obj.__code__.co_names,
+                    "varnames": obj.__code__.co_varnames,
+                    "filename": obj.__code__.co_filename,
+                    "name": obj.__code__.co_name,
+                    "firstlineno": obj.__code__.co_firstlineno,
+                    "lnotab": obj.__code__.co_lnotab,
+                    "freevars": obj.__code__.co_freevars,
+                    "cellvars": obj.__code__.co_cellvars,
+                    "globals": {
+                        k: obj.__globals__[k]
+                        for k in set(obj.__globals__) & set(obj.__code__.co_names)
+                    },
+                    "closure": closure,
+                    "qualname": obj.__qualname__
+                }, self.dumps),
+            )
+        elif isinstance(obj, type):
+            return JSON.format(
+                type=type(obj),
+                id=id(obj),
+                items=Formatter().to_json({
+                    'name': obj.__name__,
+                    'mro': tuple(obj.mro()[1:-1]),
+                    'attrs': {
+                        k: v for k, v in obj.__dict__.items()
+                        if k not in self._NOT_SERIALIZABLE
+                    }
+                }, self.dumps)
             )
 
+    # noinspection PyArgumentList,PyUnresolvedReferences
     def loads(self, s: str):
         """Loads an object from a string and returns it.
         Operates using JSON template from ``utils.templates``.
@@ -118,6 +170,8 @@ class JSONSerializer(Serializer):
         if not len(s):
             return
 
+        if s == ' ':
+            return ...
         if s.startswith('"'):
             return s.strip('"')
         elif s in self._KEYWORDS.values():
@@ -132,11 +186,33 @@ class JSONSerializer(Serializer):
             return obj_data
         elif issubclass(obj_type, Iterable):
             return obj_type(obj_data.values())
+        elif issubclass(obj_type, CodeType):
+            return CodeType(*list(obj_data.values()))
         elif issubclass(obj_type, FunctionType):
-            obj_data['code'] = bytes(obj_data['code'].encode())
-            obj_data['lnotab'] = bytes(obj_data['lnotab'].encode())
+            if obj_data['closure']:
+                closure = tuple([CellType(x) for x in obj_data['closure']])
+            elif obj_data['closure'] and '__class__' in obj_data['freevars']:
+                closure = tuple([CellType(...) for _ in obj_data['closure']])
+            else:
+                closure = tuple()
 
-            return obj_type(
-                code=CodeType(*list(obj_data.values())[:-1]),
-                globals=obj_data['globals']
+            obj = FunctionType(
+                code=CodeType(*list(obj_data.values())[:16]),
+                globals={
+                    **obj_data['globals'],
+                    '__builtins__': __builtins__,
+                },
+                name=obj_data['name'],
+                closure=closure
             )
+            obj.__qualname__ = obj_data['qualname']
+
+            return obj
+        elif isinstance(obj_type, type):
+            obj = type(obj_data['name'], obj_data['mro'], obj_data['attrs'])
+            try:
+                obj.__init__.__closure__[0].cell_contents = obj
+            except (AttributeError, IndexError):
+                ...
+
+            return obj

@@ -1,12 +1,13 @@
 import re
 from abc import ABC, abstractmethod
-from types import NoneType, FunctionType, LambdaType, MethodType
+from types import NoneType, FunctionType, LambdaType, MethodType, CodeType, CellType
 from typing import Any, IO, Hashable
 
 
 class Serializer(ABC):
     _NUMERICS = [int, float, complex]
     _KEYWORDS = {None: 'null', True: 'true', False: 'false'}
+    _NOT_SERIALIZABLE = {'__weakref__', '__subclasshook__', '__dict__'}
 
     @classmethod
     def _to_number(cls, s: str) -> int | float | complex | None:
@@ -29,6 +30,8 @@ class Serializer(ABC):
 
         if not obj_type:
             return NoneType
+        if obj_type == 'bytes':
+            return bytes
         if obj_type == 'list':
             return list
         elif obj_type == 'tuple':
@@ -37,12 +40,18 @@ class Serializer(ABC):
             return set
         elif obj_type == 'dict':
             return dict
+        elif obj_type == 'code':
+            return CodeType
+        elif obj_type == 'cell':
+            return CellType
         elif obj_type == 'function':
             return FunctionType
         elif obj_type == 'lambda':
             return LambdaType
         elif obj_type == 'method':
             return MethodType
+        elif obj_type == 'type':
+            return type
 
     def dump(self, obj: Any, fp: IO[str]) -> None:
         """Dumps an object to .json file.
@@ -67,7 +76,7 @@ class Serializer(ABC):
         :param obj: object to dump.
         :return: string containing serialized (dumped) object.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def loads(self, s):
@@ -76,4 +85,4 @@ class Serializer(ABC):
         :param s: string to extract object from.
         :return: deserialized Python object.
         """
-        pass
+        raise NotImplementedError
