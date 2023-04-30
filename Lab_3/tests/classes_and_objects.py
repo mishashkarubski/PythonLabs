@@ -17,8 +17,8 @@ class TestClass1:
     def test_bound_1(self):
         return self.a + self.aa
 
-    # @staticmethod
-    def test_class_1(self, a):
+    @staticmethod
+    def test_static_1(a):
         return type(a)
 
 
@@ -30,8 +30,8 @@ class TestClass2(TestClass1):
         self.b = 5
         self.bb = bb - 0.8
 
-    # @classmethod
-    def test_static_2(cls):
+    @classmethod
+    def test_class_2(cls):
         return cls.SOME_PROP_1
 
 
@@ -42,6 +42,10 @@ class WithoutInheritanceCase(unittest.TestCase):
         self.assertEqual(
             self.json_ser.loads(self.json_ser.dumps(TestClass1))(12).test_bound_1(),
             TestClass1(12).test_bound_1()
+        )
+        self.assertEqual(
+            self.json_ser.loads(self.json_ser.dumps(TestClass1))().test_static_1(2),
+            TestClass1(12).test_static_1(2)
         )
 
     def test_single_class_inheritance(self):

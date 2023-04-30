@@ -1,6 +1,14 @@
 import re
 from abc import ABC, abstractmethod
-from types import NoneType, FunctionType, LambdaType, MethodType, CodeType, CellType
+from types import (
+    NoneType,
+    FunctionType,
+    LambdaType,
+    MethodType,
+    CodeType,
+    CellType,
+    ModuleType
+)
 from typing import Any, IO, Hashable
 
 
@@ -52,6 +60,8 @@ class Serializer(ABC):
             return MethodType
         elif obj_type == 'type':
             return type
+        elif obj_type == 'module':
+            return ModuleType
         elif obj_type == 'object':
             return object
 
