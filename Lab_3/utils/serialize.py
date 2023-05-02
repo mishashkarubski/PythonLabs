@@ -25,6 +25,8 @@ from .templates import JSON
 class JSONSerializer(Serializer):
     """JSON serializer class."""
 
+    _OBJECT_TYPE: str = r"<class '(\w\S+)'>_"
+
     def __init__(self):
         super().__init__()
 
@@ -200,7 +202,7 @@ class JSONSerializer(Serializer):
         if self._to_number(s) is not None:
             return self._to_number(s)
 
-        obj_type: type = self._obj_type_from_template(s, r"<class '(\w\S+)'>_")
+        obj_type: type = self._obj_type_from_template(s, self._OBJECT_TYPE)
         obj_items: dict = self._load_from_dictlike_str(s)
 
         if issubclass(obj_type, dict):
@@ -255,3 +257,46 @@ class JSONSerializer(Serializer):
             obj.__dict__ = obj_items.get('attrs')
 
             return obj
+
+
+class XMLSerializer(Serializer):
+    _PRIMITIVE_TYPES: tuple[type] = (int, float, complex, str, bool, NoneType, Ellipsis)
+    _TYPE_PATTERN: str = r'type="(\w+)"'
+    _PRIMITIVE: str = r'<primitive {type}>{value}</primitive>'
+
+    def dumps(self, obj) -> str:
+        if type(obj) in self._PRIMITIVE_TYPES:
+            obj_type = re.search(r"<class\s'(\w+)'>", str(type(obj))).group(1)
+            return self._PRIMITIVE.format(
+                type=f'type="{obj_type}"',
+                value=obj
+            )
+
+    def loads(self, s):
+        if not len(s):
+            return
+
+        if re.search(self._PRIMITIVE.format(
+                type='type="\w+"',
+                value='(.+)'
+        ), s):
+            obj_data = re.search(self._PRIMITIVE.format(
+                type='type="\w+"',
+                value='(.+)'
+            ), s).group(1)
+            obj_type = self._obj_type_from_template(s, self._TYPE_PATTERN)
+
+            if obj_type == NoneType:
+                return None
+            return obj_type(obj_data)
+
+
+if __name__ == "__main__":
+    xml_ser = XMLSerializer()
+    print(type(xml_ser.loads(xml_ser.dumps(True))))
+    print(type(xml_ser.loads(xml_ser.dumps("None"))))
+    print(type(xml_ser.loads(xml_ser.dumps(None))))
+    print(type(xml_ser.loads(xml_ser.dumps("14"))))
+    print(type(xml_ser.loads(xml_ser.dumps(14))))
+    print(type(xml_ser.loads(xml_ser.dumps("14+9j"))))
+    print(type(xml_ser.loads(xml_ser.dumps(14+9j))))
