@@ -1,6 +1,5 @@
 """Serialization of Lab_3"""
 import re
-from collections.abc import Collection
 from types import (
     FunctionType,
     CodeType,
@@ -9,23 +8,19 @@ from types import (
     MethodType,
     ModuleType
 )
-from typing import Hashable, Iterable, Iterator
+from typing import Iterable, Iterator
 
 from .base import Serializer
 from .helpers import Formatter
-from .templates import JSON
-
-
-# TODO *6: Add scope serialization support (+ tests).
-# TODO *7: Add library serialization support (+ tests).
+from .templates import JSON, XML, XML_PRIMITIVE
+from .contants import PRIMITIVE_TYPES
 
 # TODO *8: Add XAML serialization templates (+ tests).
 
 
 class JSONSerializer(Serializer):
     """JSON serializer class."""
-
-    _OBJECT_TYPE: str = r"<class '(\w\S+)'>_"
+    _TYPE_PATTERN: str = r"<class '(\w\S+)'>_"
 
     def __init__(self):
         super().__init__()
@@ -76,108 +71,15 @@ class JSONSerializer(Serializer):
             return f'"{obj}"'
         if type(obj) == type(Ellipsis):
             return ' '
-        if type(obj) in self._NUMERICS:
+        if type(obj) in (int, float, complex):
             return str(obj)
-        if isinstance(obj, Hashable) and type(obj) in [bool, NoneType]:
-            return self._KEYWORDS[obj]
-
-        if isinstance(obj, dict):
-            items = obj
-
-        elif isinstance(obj, Collection):
-            items = dict(enumerate(obj))
-
-        elif isinstance(obj, CodeType):
-            items = {
-                "argcount": obj.co_argcount,
-                "posonlyargcount": obj.co_posonlyargcount,
-                "kwonlyargcount": obj.co_kwonlyargcount,
-                "nlocals": obj.co_nlocals,
-                "stacksize": obj.co_stacksize,
-                "flags": obj.co_flags,
-                "code": obj.co_code,
-                "consts": obj.co_consts,
-                "names": obj.co_names,
-                "varnames": obj.co_varnames,
-                "filename": obj.co_filename,
-                "name": obj.co_name,
-                "firstlineno": obj.co_firstlineno,
-                "lnotab": obj.co_lnotab,
-                "freevars": obj.co_freevars,
-                "cellvars": obj.co_cellvars,
-            }
-
-        elif isinstance(obj, FunctionType):
-            if obj.__closure__ and "__class__" in obj.__code__.co_freevars:
-                closure = ([... for _ in obj.__closure__])
-            else:
-                closure = obj.__closure__
-
-            items = {
-                "argcount": obj.__code__.co_argcount,
-                "posonlyargcount": obj.__code__.co_posonlyargcount,
-                "kwonlyargcount": obj.__code__.co_kwonlyargcount,
-                "nlocals": obj.__code__.co_nlocals,
-                "stacksize": obj.__code__.co_stacksize,
-                "flags": obj.__code__.co_flags,
-                "code": obj.__code__.co_code,
-                "consts": obj.__code__.co_consts,
-                "names": obj.__code__.co_names,
-                "varnames": obj.__code__.co_varnames,
-                "filename": obj.__code__.co_filename,
-                "name": obj.__code__.co_name,
-                "firstlineno": obj.__code__.co_firstlineno,
-                "lnotab": obj.__code__.co_lnotab,
-                "freevars": obj.__code__.co_freevars,
-                "cellvars": obj.__code__.co_cellvars,
-                "globals": {
-                    k: obj.__globals__[k]
-                    for k in (
-                        set(
-                            k for k, v in obj.__globals__.items()
-                            if isinstance(v, ModuleType)
-                        ) |
-                        set(obj.__globals__) &
-                        set(obj.__code__.co_names) -
-                        {obj.__name__}
-                    )
-                },
-                "closure": closure,
-                "qualname": obj.__qualname__
-            }
-
-        elif isinstance(obj, MethodType):
-            items = {
-                "__func__": obj.__func__,
-                "__self__": obj.__self__
-            }
-
-        elif issubclass(type(obj), type):
-            items = {
-                'name': obj.__name__,
-                'mro': tuple(obj.mro()[1:-1]),
-                'attrs': {
-                    k: v for k, v in obj.__dict__.items()
-                    if k not in self._NOT_SERIALIZABLE
-                }
-            }
-
-        elif issubclass(type(obj), ModuleType):
-            items = {'name': obj.__name__}
-
-        else:
-            items = {
-                'class': obj.__class__,
-                'attrs': {
-                    k: v for k, v in obj.__dict__.items()
-                    if k not in self._NOT_SERIALIZABLE
-                }
-            }
+        if type(obj) in [bool, NoneType]:
+            return self._JSON_KEYWORDS[obj]
 
         return JSON.format(
             type=type(obj),
             id=id(obj),
-            items=Formatter().to_json(items, self.dumps)
+            items=Formatter().to_json(self.get_items(obj), self.dumps)
         )
 
     # noinspection PyArgumentList,PyUnresolvedReferences
@@ -197,12 +99,12 @@ class JSONSerializer(Serializer):
             return ...
         if s.startswith('"'):
             return s.strip('"')
-        if s in self._KEYWORDS.values():
-            return self._get_key(s, self._KEYWORDS)
+        if s in self._JSON_KEYWORDS.values():
+            return self._get_key(s, self._JSON_KEYWORDS)
         if self._to_number(s) is not None:
             return self._to_number(s)
 
-        obj_type: type = self._obj_type_from_template(s, self._OBJECT_TYPE)
+        obj_type: type = self._obj_type_from_template(s, self._TYPE_PATTERN)
         obj_items: dict = self._load_from_dictlike_str(s)
 
         if issubclass(obj_type, dict):
@@ -260,43 +162,48 @@ class JSONSerializer(Serializer):
 
 
 class XMLSerializer(Serializer):
-    _PRIMITIVE_TYPES: tuple[type] = (int, float, complex, str, bool, NoneType, Ellipsis)
     _TYPE_PATTERN: str = r'type="(\w+)"'
-    _PRIMITIVE: str = r'<primitive {type}>{value}</primitive>'
 
     def dumps(self, obj) -> str:
-        if type(obj) in self._PRIMITIVE_TYPES:
-            obj_type = re.search(r"<class\s'(\w+)'>", str(type(obj))).group(1)
-            return self._PRIMITIVE.format(
-                type=f'type="{obj_type}"',
-                value=obj
-            )
+        """Dumps an object to a string and returns the string.
+        Dumping is done via string templates with XML prefix in
+        ``utils.templates`` module.
+
+        :param obj: object to dump.
+        :return: string containing serialized (dumped) object.
+        """
+        if type(obj) in PRIMITIVE_TYPES:
+            obj_type = self._get_key(type(obj), self._TYPE_MAPPING)
+            return f'<primitive type="{obj_type}">{obj}</primitive>'
+
+        return XML.format(
+            type=self._get_key(type(obj), self._TYPE_MAPPING),
+            id=id(obj),
+            items=Formatter().to_xml(self.get_items(obj), self.dumps)
+        )
 
     def loads(self, s):
+        """Loads an object from a string and returns it.
+
+        Operates using templates with XML prefix from ``utils.templates``.
+
+        :param s: string to extract object from.
+        :return: deserialized Python object.
+        """
         if not len(s):
             return
 
-        if re.search(self._PRIMITIVE.format(
-                type='type="\w+"',
-                value='(.+)'
-        ), s):
-            obj_data = re.search(self._PRIMITIVE.format(
-                type='type="\w+"',
-                value='(.+)'
-            ), s).group(1)
-            obj_type = self._obj_type_from_template(s, self._TYPE_PATTERN)
+        if "primitive" in s.split("\n")[0]:
+            obj_data = re.search(XML_PRIMITIVE, s).group(1)
+            obj_type = self._obj_type_from_template(
+                s.split("\n")[0],
+                self._TYPE_PATTERN
+            )
 
             if obj_type == NoneType:
                 return None
             return obj_type(obj_data)
 
+        # if "object" in s.split("\n")[0]:
+        #     ...
 
-if __name__ == "__main__":
-    xml_ser = XMLSerializer()
-    print(type(xml_ser.loads(xml_ser.dumps(True))))
-    print(type(xml_ser.loads(xml_ser.dumps("None"))))
-    print(type(xml_ser.loads(xml_ser.dumps(None))))
-    print(type(xml_ser.loads(xml_ser.dumps("14"))))
-    print(type(xml_ser.loads(xml_ser.dumps(14))))
-    print(type(xml_ser.loads(xml_ser.dumps("14+9j"))))
-    print(type(xml_ser.loads(xml_ser.dumps(14+9j))))
