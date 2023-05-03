@@ -1,22 +1,37 @@
 import unittest
 
-from Lab_3.utils.serialize import JSONSerializer
+from Lab_3.utils.serialize import JSONSerializer, XMLSerializer
 
 
 class JSONDataStructuresCase(unittest.TestCase):
-    ser: JSONSerializer = JSONSerializer()
+    json_ser: JSONSerializer = JSONSerializer()
+    xml_ser: XMLSerializer = XMLSerializer()
 
     def test_empty(self):
-        self.assertEqual(self.ser.loads(self.ser.dumps({})), {})
-        self.assertEqual(self.ser.loads(self.ser.dumps(())), ())
-        self.assertEqual(self.ser.loads(self.ser.dumps([])), [])
-        self.assertEqual(self.ser.loads(self.ser.dumps(set())), set())
+        self.assertEqual(self.json_ser.loads(self.json_ser.dumps({})), {})
+        self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps({})), {})
+
+        self.assertEqual(self.json_ser.loads(self.json_ser.dumps(())), ())
+        self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps(())), ())
+
+        self.assertEqual(self.json_ser.loads(self.json_ser.dumps([])), [])
+        self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps([])), [])
+
+        self.assertEqual(self.json_ser.loads(self.json_ser.dumps(set())), set())
+        self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps(set())), set())
 
     def test_single_value(self):
-        self.assertEqual(self.ser.loads(self.ser.dumps({None: 0})), {None: 0})
-        self.assertEqual(self.ser.loads(self.ser.dumps(([None]))), ([None]))
-        self.assertEqual(self.ser.loads(self.ser.dumps([None])), [None])
-        self.assertEqual(self.ser.loads(self.ser.dumps({None})), {None})
+        self.assertEqual(self.json_ser.loads(self.json_ser.dumps({None: 0})), {None: 0})
+        self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps({None: 0})), {None: 0})
+
+        self.assertEqual(self.json_ser.loads(self.json_ser.dumps(([None]))), ([None]))
+        self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps(([None]))), ([None]))
+
+        self.assertEqual(self.json_ser.loads(self.json_ser.dumps([None])), [None])
+        self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps([None])), [None])
+
+        self.assertEqual(self.json_ser.loads(self.json_ser.dumps({None})), {None})
+        self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps({None})), {None})
 
     def test_nested_multityped(self):
         test_1 = {
@@ -30,7 +45,8 @@ class JSONDataStructuresCase(unittest.TestCase):
                 },
             }
         }
-        self.assertEqual(self.ser.loads(self.ser.dumps(test_1)), test_1)
+        self.assertEqual(self.json_ser.loads(self.json_ser.dumps(test_1)), test_1)
+        self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps(test_1)), test_1)
 
 
 if __name__ == '__main__':

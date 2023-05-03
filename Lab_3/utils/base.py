@@ -1,69 +1,30 @@
 import re
 from abc import ABC, abstractmethod
-from types import (
-    NoneType,
-    FunctionType,
-    LambdaType,
-    MethodType,
-    CodeType,
-    CellType,
-    ModuleType
-)
-from typing import Any, IO, Hashable, Collection
+from types import NoneType, FunctionType, MethodType, CodeType, ModuleType, CellType
+from typing import Any, IO, Hashable, Collection, Iterable
+
+from .constants import TYPE_MAPPING
+from .helpers import Formatter
 
 
 class Serializer(ABC):
-    _JSON_KEYWORDS: dict[None | bool, str] = {
-        None: 'null',
-        True: 'true',
-        False: 'false'
-    }
     _NOT_SERIALIZABLE: set[str] = {
         '__weakref__',
         '__subclasshook__',
         '__dict__'
     }
-    _TYPE_MAPPING = {
-        'int': int,
-        'float': float,
-        'complex': complex,
-        'str': str,
-        'bool': bool,
-        'NoneType': NoneType,
-        'ellipsis': Ellipsis,
-        'bytes': bytes,
-        'list': list,
-        'tuple': tuple,
-        'set': set,
-        'dict': dict,
-        'code': CodeType,
-        'cell': CellType,
-        'function': FunctionType,
-        'lambda': LambdaType,
-        'method': MethodType,
-        'type': type,
-        'module': ModuleType,
-        'object': object,
-    }
-
-    @classmethod
-    def _to_number(cls, s: str) -> int | float | complex | None:
-        for num_type in (int, float, complex):
-            try:
-                return num_type(s)
-            except (ValueError, TypeError):
-                pass
+    formatter = Formatter()
 
     @staticmethod
     def _get_key(value: Hashable, obj: dict):
         return [key for key in obj if obj[key] == value][0]
 
     @classmethod
-    def _obj_type_from_template(cls, s: str, pattern: str) -> type:
+    def _type_from_str(cls, s: str, pattern: str) -> type:
         if not re.search(pattern, s):
             return NoneType
 
-        return cls._TYPE_MAPPING[re.search(pattern, s).group(1)]
+        return TYPE_MAPPING[re.search(pattern, s).group(1)]
 
     def get_items(self, obj) -> dict[str, Any]:
         """
@@ -163,6 +124,61 @@ class Serializer(ABC):
                     if k not in self._NOT_SERIALIZABLE
                 }
             }
+
+    # noinspection PyArgumentList,PyUnresolvedReferences
+    def create_object(self, obj_type: type, obj_data):
+        if issubclass(obj_type, dict):
+            return obj_data
+
+        elif issubclass(obj_type, Iterable):
+            return obj_type(obj_data.values())
+
+        elif issubclass(obj_type, CodeType):
+            return CodeType(*list(obj_data.values()))
+
+        elif issubclass(obj_type, FunctionType):
+            if obj_data.get('closure'):
+                closure = tuple([CellType(x) for x in obj_data.get('closure')])
+            elif obj_data.get('closure') and '__class__' in obj_data.get('freevars'):
+                closure = tuple([CellType(...) for _ in obj_data.get('closure')])
+            else:
+                closure = tuple()
+
+            obj = FunctionType(
+                code=CodeType(*list(obj_data.values())[:16]),
+                globals=obj_data.get('globals'),
+                name=obj_data['name'],
+                closure=closure
+            )
+            obj.__qualname__ = obj_data.get('qualname')
+            obj.__globals__[obj.__name__] = obj
+
+            return obj
+
+        elif issubclass(obj_type, MethodType):
+            return MethodType(
+                obj_data.get('__func__'),
+                obj_data.get('__self__'),
+            )
+
+        elif issubclass(obj_type, type):
+            obj = type(obj_data.get('name'), obj_data.get('mro'), obj_data.get('attrs'))
+
+            try:
+                obj.__init__.__closure__[0].cell_contents = obj
+            except (AttributeError, IndexError):
+                ...
+
+            return obj
+
+        elif issubclass(obj_type, ModuleType):
+            return __import__(obj_data.get('name'))
+
+        else:
+            obj = object.__new__(obj_data.get('class'))
+            obj.__dict__ = obj_data.get('attrs')
+
+            return obj
 
     def dump(self, obj: Any, fp: IO[str]) -> None:
         """Dumps an object to .json file.
