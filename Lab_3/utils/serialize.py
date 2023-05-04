@@ -1,14 +1,11 @@
 """Serialization of Lab_3"""
 import re
-from types import NoneType
+from types import NoneType, EllipsisType
 from typing import Iterator
 
 from .base import Serializer
 from .templates import JSON, XML, XML_PRIMITIVE
 from .constants import PRIMITIVE_TYPES, TYPE_MAPPING
-
-
-# TODO *8: Add XAML serialization templates (+ tests).
 
 
 class JSONSerializer(Serializer):
@@ -178,8 +175,10 @@ class XMLSerializer(Serializer):
 
         if "primitive" in s.split("\n")[0]:
             obj_data = re.search(
-                XML_PRIMITIVE.format(type="\w+", obj="(.+)"), s
-            ).group(1)
+                XML_PRIMITIVE.format(
+                    type="\w+",
+                    obj="(.*)"
+                ), s).group(1)
             obj_type = self._type_from_str(
                 s=s.split("\n")[0],
                 pattern=self._TYPE_PATTERN
@@ -190,6 +189,9 @@ class XMLSerializer(Serializer):
 
             if obj_type == bool:
                 return obj_data == "True"
+
+            if obj_type == EllipsisType:
+                return ...
 
             return obj_type(obj_data)
 

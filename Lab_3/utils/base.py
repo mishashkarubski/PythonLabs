@@ -1,6 +1,8 @@
 import re
 from abc import ABC, abstractmethod
-from types import NoneType, FunctionType, MethodType, CodeType, ModuleType, CellType
+from types import NoneType, FunctionType, MethodType, CodeType, ModuleType,\
+    CellType, BuiltinMethodType, BuiltinFunctionType, WrapperDescriptorType, \
+    MethodDescriptorType, MappingProxyType, GetSetDescriptorType, MemberDescriptorType
 from typing import Any, IO, Hashable, Collection, Iterable
 
 from .constants import TYPE_MAPPING
@@ -8,11 +10,18 @@ from .helpers import Formatter
 
 
 class Serializer(ABC):
-    _NOT_SERIALIZABLE: set[str] = {
+    _IGNORED_FIELDS: set[str] = (
         '__weakref__',
         '__subclasshook__',
-        '__dict__'
-    }
+        '__dict__',
+        '__doc__'
+    )
+    _IGNORED_FIELD_TYPES: set[str] = (
+        BuiltinFunctionType, BuiltinMethodType,
+        WrapperDescriptorType, MethodDescriptorType,
+        MappingProxyType, GetSetDescriptorType,
+        MemberDescriptorType
+    )
     formatter = Formatter()
 
     @staticmethod
@@ -32,6 +41,9 @@ class Serializer(ABC):
         :param obj:
         :return:
         """
+        if isinstance(obj, (BuiltinFunctionType, BuiltinMethodType)):
+            return {}
+
         if isinstance(obj, dict):
             return obj
 
@@ -61,8 +73,10 @@ class Serializer(ABC):
         elif isinstance(obj, FunctionType):
             if obj.__closure__ and "__class__" in obj.__code__.co_freevars:
                 closure = ([... for _ in obj.__closure__])
+            elif obj.__closure__:
+                closure = ([cell.cell_contents for cell in obj.__closure__])
             else:
-                closure = obj.__closure__
+                closure = None
 
             return {
                 "argcount": obj.__code__.co_argcount,
@@ -109,19 +123,31 @@ class Serializer(ABC):
                 'mro': tuple(obj.mro()[1:-1]),
                 'attrs': {
                     k: v for k, v in obj.__dict__.items()
-                    if k not in self._NOT_SERIALIZABLE
+                    if (
+                        k not in self._IGNORED_FIELDS and
+                        type(v) not in self._IGNORED_FIELD_TYPES
+                    )
                 }
             }
 
         elif issubclass(type(obj), ModuleType):
             return {'name': obj.__name__}
 
+        elif isinstance(obj, staticmethod):
+            return self.get_items(obj.__func__)
+
+        elif isinstance(obj, classmethod):
+            return self.get_items(obj.__func__)
+
         else:
             return {
                 'class': obj.__class__,
                 'attrs': {
                     k: v for k, v in obj.__dict__.items()
-                    if k not in self._NOT_SERIALIZABLE
+                    if (
+                        k not in self._IGNORED_FIELDS and
+                        type(k) not in self._IGNORED_FIELD_TYPES
+                    )
                 }
             }
 
@@ -160,6 +186,9 @@ class Serializer(ABC):
                 obj_data.get('__func__'),
                 obj_data.get('__self__'),
             )
+
+        elif issubclass(obj_type, (staticmethod, classmethod)):
+            return self.create_object(FunctionType, obj_data)
 
         elif issubclass(obj_type, type):
             obj = type(obj_data.get('name'), obj_data.get('mro'), obj_data.get('attrs'))

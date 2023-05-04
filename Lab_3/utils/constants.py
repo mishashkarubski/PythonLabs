@@ -1,9 +1,9 @@
 from types import (
     NoneType, FunctionType, LambdaType,
-    MethodType, CodeType, CellType, ModuleType
+    MethodType, CodeType, CellType, ModuleType, EllipsisType
 )
 
-PRIMITIVE_TYPES: tuple = (int, float, complex, str, bool, NoneType, type(Ellipsis))
+PRIMITIVE_TYPES: tuple = (int, float, complex, str, bool, NoneType, EllipsisType)
 TYPE_MAPPING = {
     'int': int,
     'float': float,
@@ -11,7 +11,7 @@ TYPE_MAPPING = {
     'str': str,
     'bool': bool,
     'NoneType': NoneType,
-    'ellipsis': Ellipsis,
+    'ellipsis': EllipsisType,
     'bytes': bytes,
     'list': list,
     'tuple': tuple,
@@ -22,6 +22,8 @@ TYPE_MAPPING = {
     'function': FunctionType,
     'lambda': LambdaType,
     'method': MethodType,
+    'staticmethod': staticmethod,
+    'classmethod': classmethod,
     'type': type,
     'module': ModuleType,
     'object': object,

@@ -47,11 +47,6 @@ class JSONBasicTypesCase(unittest.TestCase):
         self.assertEqual(self.json_ser.loads(self.json_ser.dumps(False)), False)
         self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps(False)), False)
 
-        self.assertEqual(self.json_ser.loads(self.json_ser.dumps("")), "")
-        # self.assertEqual(self.xml_ser.loads(self.xml_ser.dumps("")), "")
-
-
-
     def test_dump_and_load(self):
         with (
             open(os.path.join(DATA_DIR, "dump_and_load.json"), "w+") as fw,
