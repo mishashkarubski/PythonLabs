@@ -1,7 +1,7 @@
 import os.path
 import unittest
 
-from Lab_3.utils.serialize import JSONSerializer, XMLSerializer
+from Lab_3.xjst.serialize import JSONSerializer, XMLSerializer
 from tests import DATA_DIR
 
 

@@ -5,8 +5,8 @@ from types import NoneType, FunctionType, MethodType, CodeType, ModuleType,\
     MethodDescriptorType, MappingProxyType, GetSetDescriptorType, MemberDescriptorType
 from typing import Any, IO, Hashable, Collection, Iterable
 
-from .constants import TYPE_MAPPING
-from .helpers import Formatter
+from xjst.utils.constants import TYPE_MAPPING
+from xjst.utils.helpers import Formatter
 
 
 class Serializer(ABC):

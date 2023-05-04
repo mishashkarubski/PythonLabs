@@ -1,5 +1,5 @@
 from .constants import PRIMITIVE_TYPES
-from .templates import XML_ITEM
+from xjst.utils.templates import XML_ITEM
 
 
 class Formatter:

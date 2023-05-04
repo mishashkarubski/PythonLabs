@@ -1,6 +1,6 @@
 import unittest
 
-from Lab_3.utils.serialize import JSONSerializer, XMLSerializer
+from Lab_3.xjst.serialize import JSONSerializer, XMLSerializer
 
 TEST_GLOBAL_1 = 19
 

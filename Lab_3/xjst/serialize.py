@@ -4,8 +4,8 @@ from types import NoneType, EllipsisType
 from typing import Iterator
 
 from .base import Serializer
-from .templates import JSON, XML, XML_PRIMITIVE
-from .constants import PRIMITIVE_TYPES, TYPE_MAPPING
+from xjst.utils.templates import JSON, XML, XML_PRIMITIVE
+from xjst.utils.constants import PRIMITIVE_TYPES, TYPE_MAPPING
 
 
 class JSONSerializer(Serializer):

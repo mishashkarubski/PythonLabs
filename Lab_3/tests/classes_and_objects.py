@@ -1,6 +1,6 @@
 import unittest
 
-from Lab_3.utils.serialize import JSONSerializer
+from Lab_3.xjst.serialize import JSONSerializer
 
 
 class TestClass1:
